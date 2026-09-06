@@ -1,0 +1,14 @@
+# Artefactes de compilació .NET
+bin/
+obj/
+publish/
+
+# Dades locals de l'aplicació
+dades/
+*.db
+*.db-shm
+*.db-wal
+
+# Fitxers de sistema
+.DS_Store
+*.log

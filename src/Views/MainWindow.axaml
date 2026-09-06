@@ -1,0 +1,270 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ProgramacioDocent.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
+        x:Class="ProgramacioDocent.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/icona.ico"
+        Title="Programació Docent"
+        Width="1100" Height="720"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen">
+
+    <Panel>
+        <!-- ================= CONTINGUT PRINCIPAL ================= -->
+        <DockPanel LastChildFill="True">
+
+            <!-- Capçalera -->
+            <Border DockPanel.Dock="Top" Background="#2C3E50" Padding="16,12">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="Programació Docent" FontSize="20" FontWeight="Bold"
+                               Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TitolSetmana}" FontSize="13"
+                               Foreground="#BDC3C7" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <TabControl DockPanel.Dock="Top" Margin="8">
+
+                <!-- ====== PESTANYA HORARI ====== -->
+                <TabItem Header="Horari">
+                    <DockPanel LastChildFill="True" Margin="8">
+
+                        <!-- Barra de navegació de setmanes -->
+                        <Border DockPanel.Dock="Top" Background="#ECF0F1"
+                                CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="◀ Setmana anterior" Command="{Binding SetmanaAnteriorCommand}"/>
+                                <Button Content="Avui" Command="{Binding SetmanaAvuiCommand}"/>
+                                <Button Content="Setmana següent ▶" Command="{Binding SetmanaSeguentCommand}"/>
+                                <TextBlock Text="{Binding InfoDia}" VerticalAlignment="Center"
+                                           Margin="16,0,0,0" Foreground="#7F8C8D" FontStyle="Italic"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Capçalera de dies -->
+                        <Grid DockPanel.Dock="Top" ColumnDefinitions="110,*,*,*,*,*" Margin="0,0,0,4">
+                            <TextBlock Grid.Column="0" Text="Hora" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="Dilluns" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="Dimarts" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="3" Text="Dimecres" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="4" Text="Dijous" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="5" Text="Divendres" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Missatge d'ajuda -->
+                        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0" Foreground="#7F8C8D"
+                                   Text="Fes clic sobre una classe per afegir o editar les notes d'aquella setmana. Les classes amb un punt verd ja tenen notes."/>
+
+                        <!-- Graella d'horari -->
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding FilesHorari}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:FilaHorariViewModel">
+                                        <Grid ColumnDefinitions="110,*,*,*,*,*" Margin="0,0,0,6" MinHeight="64">
+                                            <Border Grid.Column="0" Background="#F7F9FA"
+                                                    CornerRadius="4" Margin="2">
+                                                <TextBlock Text="{Binding Franja}" FontSize="12"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                            </Border>
+
+                                            <ContentControl Grid.Column="1" Content="{Binding Celles[0]}"
+                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
+                                            <ContentControl Grid.Column="2" Content="{Binding Celles[1]}"
+                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
+                                            <ContentControl Grid.Column="3" Content="{Binding Celles[2]}"
+                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
+                                            <ContentControl Grid.Column="4" Content="{Binding Celles[3]}"
+                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
+                                            <ContentControl Grid.Column="5" Content="{Binding Celles[4]}"
+                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </TabItem>
+
+                <!-- ====== PESTANYA INFORMES ====== -->
+                <TabItem Header="Informes">
+                    <StackPanel Margin="24" Spacing="16" MaxWidth="560" HorizontalAlignment="Left">
+                        <TextBlock Text="Generació d'informes" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                   Text="Genera un informe amb totes les notes preses, ordenades per assignatura. Tria el període i el format de sortida."/>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Període" FontWeight="SemiBold"/>
+                            <ComboBox ItemsSource="{Binding PeriodesInforme}"
+                                      SelectedItem="{Binding PeriodeSeleccionat}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Format del fitxer" FontWeight="SemiBold"/>
+                            <ComboBox ItemsSource="{Binding FormatsInforme}"
+                                      SelectedItem="{Binding FormatSeleccionat}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <Button Content="Genera l'informe" Classes="accent"
+                                Click="OnGeneraInforme" HorizontalAlignment="Left" Padding="16,8"/>
+
+                        <TextBlock Text="{Binding MissatgeInforme}" TextWrapping="Wrap"
+                                   Foreground="#27AE60"/>
+                    </StackPanel>
+                </TabItem>
+
+                <!-- ====== PESTANYA CALENDARI / INFORMACIÓ ====== -->
+                <TabItem Header="Informació">
+                    <StackPanel Margin="24" Spacing="12" MaxWidth="680" HorizontalAlignment="Left">
+                        <TextBlock Text="Curs 2026-2027 · Catalunya" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock TextWrapping="Wrap"
+                                   Text="Inici de curs: 8 de setembre de 2026. Fi de curs: 21 de juny de 2027."/>
+                        <TextBlock TextWrapping="Wrap" FontWeight="SemiBold" Text="Dies no lectius precarregats:"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="#555"
+                                   Text="• 11/09/2026 Diada Nacional de Catalunya&#x0a;• 12/10/2026 Festa Nacional d'Espanya&#x0a;• 08/12/2026 La Immaculada&#x0a;• Vacances de Nadal: 22/12/2026 – 07/01/2027&#x0a;• Vacances de Setmana Santa: 20/03/2027 – 29/03/2027&#x0a;• 01/05/2027 Festa del Treball"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontStyle="Italic"
+                                   Text="Els dies de lliure disposició els fixa cada centre i es poden afegir manualment. Recorda: en centres privats les dates poden variar lleugerament."/>
+                        <Border Background="#FEF9E7" BorderBrush="#F1C40F" BorderThickness="1"
+                                CornerRadius="6" Padding="12" Margin="0,8,0,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Protecció de dades (RGPD)" FontWeight="Bold"/>
+                                <TextBlock TextWrapping="Wrap"
+                                           Text="Les dades es desen únicament en aquest equip. Es recomana no escriure noms complets d'alumnes a les notes; feu servir inicials o codis."/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="{Binding RutaDades, StringFormat='Ubicació de les dades: {0}'}"
+                                   Foreground="#7F8C8D" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+
+        <!-- ================= OVERLAY: EDITOR DE NOTES ================= -->
+        <Border IsVisible="{Binding MostraEditorNota}"
+                Background="#88000000">
+            <Border Background="White" CornerRadius="10" Width="560" MaxHeight="520"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
+                        <TextBlock Text="{Binding TitolNota}" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding SubtitolNota}" Foreground="#7F8C8D"/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+                        <Button Content="Cancel·la" Command="{Binding CancelaNotaCommand}" Padding="16,8"/>
+                        <Button Content="Desa la nota" Classes="accent"
+                                Command="{Binding DesaNotaCommand}" Padding="16,8"/>
+                    </StackPanel>
+
+                    <TextBox Text="{Binding TextNota}" AcceptsReturn="True" TextWrapping="Wrap"
+                             Watermark="Escriu aquí les notes sobre la classe i els alumnes…"
+                             VerticalContentAlignment="Top" MinHeight="240"/>
+                </DockPanel>
+            </Border>
+        </Border>
+
+        <!-- ================= OVERLAY: ASSISTENT INICIAL ================= -->
+        <Border IsVisible="{Binding MostraAssistent}" Background="#88000000">
+            <Border Background="White" CornerRadius="10" Width="760" MaxHeight="640"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,12">
+                        <TextBlock Text="Benvingut/da a Programació Docent" FontSize="20" FontWeight="Bold"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                   Text="Defineix el teu horari inicial. Podràs editar-lo més endavant (reducció de jornada, canvis de curs, etc.)."/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0" Spacing="6">
+                        <TextBlock Text="{Binding MissatgeAssistent}" Foreground="#E74C3C"/>
+                        <Button Content="Comença a fer servir l'aplicació" Classes="accent"
+                                Command="{Binding CompletaAssistentCommand}"
+                                HorizontalAlignment="Right" Padding="18,10"/>
+                    </StackPanel>
+
+                    <ScrollViewer>
+                        <Grid ColumnDefinitions="*,16,*">
+                            <!-- Franjes -->
+                            <StackPanel Grid.Column="0" Spacing="6">
+                                <TextBlock Text="Franjes horàries" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding FranjesAssistent}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:FranjaEditVm">
+                                            <Grid ColumnDefinitions="*,Auto,*,Auto" Margin="0,2">
+                                                <TextBox Grid.Column="0" Text="{Binding HoraInici}" Watermark="08:00"/>
+                                                <TextBlock Grid.Column="1" Text="–" Margin="6,0" VerticalAlignment="Center"/>
+                                                <TextBox Grid.Column="2" Text="{Binding HoraFi}" Watermark="09:00"/>
+                                                <Button Grid.Column="3" Content="✕" Margin="6,0,0,0"
+                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaFranjaAssistentCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Content="+ Afegeix franja"
+                                        Command="{Binding AfegeixFranjaAssistentCommand}"/>
+                            </StackPanel>
+
+                            <!-- Assignatures -->
+                            <StackPanel Grid.Column="2" Spacing="6">
+                                <TextBlock Text="Assignatures" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding AssignaturesAssistent}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AssignaturaEditVm">
+                                            <Grid ColumnDefinitions="*,*,Auto" Margin="0,2">
+                                                <TextBox Grid.Column="0" Text="{Binding Nom}" Watermark="Nom (p.ex. Matemàtiques)"/>
+                                                <TextBox Grid.Column="1" Text="{Binding Curs}" Watermark="Curs (p.ex. 1r ESO A)" Margin="6,0,0,0"/>
+                                                <Button Grid.Column="2" Content="✕" Margin="6,0,0,0"
+                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaAssignaturaAssistentCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Content="+ Afegeix assignatura"
+                                        Command="{Binding AfegeixAssignaturaAssistentCommand}"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12" Margin="0,8,0,0"
+                                           Text="Després podràs col·locar cada assignatura a la graella des de la pestanya Horari."/>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Border>
+    </Panel>
+
+    <Window.Resources>
+        <!-- Plantilla d'una cel·la de classe a la graella -->
+        <DataTemplate x:Key="CellaTemplate" x:DataType="vm:ClasseCellaViewModel">
+            <Panel Margin="2">
+                <!-- Cel·la buida (sense classe) -->
+                <Border IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNull}}"
+                        Background="#FAFBFC" CornerRadius="4" BorderBrush="#ECECEC" BorderThickness="1"/>
+                <!-- Cel·la amb classe -->
+                <Button IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Click="OnClasseClick" Padding="0" HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch" Background="Transparent" BorderThickness="0">
+                    <Border CornerRadius="4" Padding="8" HorizontalAlignment="Stretch"
+                            Background="{Binding Color}">
+                        <StackPanel Spacing="2">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Ellipse Width="8" Height="8" Fill="#27AE60"
+                                         VerticalAlignment="Center"
+                                         IsVisible="{Binding TeNota}"/>
+                                <TextBlock Text="{Binding NomAssignatura}" FontWeight="Bold"
+                                           Foreground="White" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding Detall}" FontSize="11"
+                                       Foreground="#F5F5F5" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
+            </Panel>
+        </DataTemplate>
+    </Window.Resources>
+</Window>
