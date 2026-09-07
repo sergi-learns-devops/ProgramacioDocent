@@ -91,6 +91,12 @@ equips capats (no s'automodifica ni es rellança sola):
 Si l'equip **no té accés a Internet**, pots actualitzar igualment: descarrega el
 ZIP en un altre equip, copia'l per USB o xarxa interna i segueix els passos 3–5.
 
+> **Consell pràctic:** descomprimeix sempre a la **mateixa carpeta** (per exemple,
+> una de fixa a l'Escriptori). Així actualitzar és només "substituir i obrir". Si
+> descomprimissis en una carpeta nova cada cop, hauries de copiar-hi també la
+> carpeta `dades/` (o confiar en la ubicació `%LOCALAPPDATA%`, que és comuna a
+> totes les versions).
+
 ---
 
 ## 3. Equips "capats" (restringits)

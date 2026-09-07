@@ -298,7 +298,27 @@ public partial class MainWindowViewModel : ViewModelBase
             FilesHorari.Add(fila);
         }
 
+        RefrescaCapceleraDies();
         ActualitzaTitolSetmana();
+    }
+
+    // Capçalera de dies tipus calendari: nom + data, marca del dia actual i festius.
+    public ObservableCollection<DiaCapceleraVm> DiesCapcalera { get; } = new();
+
+    private void RefrescaCapceleraDies()
+    {
+        DiesCapcalera.Clear();
+        var noms = new[] { "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres" };
+        for (int i = 0; i < 5; i++)
+        {
+            var data = SetmanaActual.AddDays(i);
+            var festiu = _calendari.FestiuDe(data);
+            DiesCapcalera.Add(new DiaCapceleraVm(
+                noms[i],
+                data,
+                esAvui: data.Date == DateTime.Today,
+                festiu: festiu?.Nom));
+        }
     }
 
     private void ActualitzaTitolSetmana()
@@ -715,6 +735,29 @@ public class FilaHorariViewModel : ViewModelBase
     public string Franja { get; }
     public ObservableCollection<ClasseCellaViewModel?> Celles { get; } = new();
     public FilaHorariViewModel(string franja) => Franja = franja;
+}
+
+// Capçalera d'un dia de la setmana (nom + data, marca d'avui i festiu).
+public class DiaCapceleraVm : ViewModelBase
+{
+    public string Nom { get; }
+    public DateTime Data { get; }
+    public bool EsAvui { get; }
+    public string? Festiu { get; }
+
+    public DiaCapceleraVm(string nom, DateTime data, bool esAvui, string? festiu)
+    {
+        Nom = nom;
+        Data = data;
+        EsAvui = esAvui;
+        Festiu = festiu;
+    }
+
+    public string DataText => Data.ToString("dd/MM");
+    public bool EsFestiu => !string.IsNullOrEmpty(Festiu);
+    // Text de la capçalera: nom + data; si és festiu, ho indica.
+    public string Titol => EsFestiu ? $"{Nom} {DataText}" : $"{Nom} {DataText}";
+    public string SubTitol => EsFestiu ? Festiu! : (EsAvui ? "Avui" : "");
 }
 
 // Model editable de franja per a l'assistent.

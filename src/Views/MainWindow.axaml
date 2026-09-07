@@ -18,12 +18,12 @@
         <DockPanel LastChildFill="True">
 
             <!-- Capçalera -->
-            <Border DockPanel.Dock="Top" Background="#2C3E50" Padding="16,12">
+            <Border DockPanel.Dock="Top" Background="{DynamicResource BrushHeader}" Padding="16,12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <TextBlock Text="Programació Docent" FontSize="20" FontWeight="Bold"
-                               Foreground="White" VerticalAlignment="Center"/>
+                               Foreground="{DynamicResource BrushHeaderText}" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding TitolSetmana}" FontSize="13"
-                               Foreground="#BDC3C7" VerticalAlignment="Center"/>
+                               Foreground="{DynamicResource BrushHeaderText}" Opacity="0.75" VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>
 
@@ -34,29 +34,55 @@
                     <DockPanel LastChildFill="True" Margin="8">
 
                         <!-- Barra de navegació de setmanes -->
-                        <Border DockPanel.Dock="Top" Background="#ECF0F1"
+                        <Border DockPanel.Dock="Top" Background="{DynamicResource BrushSurfaceAlt}"
                                 CornerRadius="6" Padding="10" Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Button Content="◀ Setmana anterior" Command="{Binding SetmanaAnteriorCommand}"/>
                                 <Button Content="Avui" Command="{Binding SetmanaAvuiCommand}"/>
                                 <Button Content="Setmana següent ▶" Command="{Binding SetmanaSeguentCommand}"/>
-                                <TextBlock Text="{Binding InfoDia}" VerticalAlignment="Center"
-                                           Margin="16,0,0,0" Foreground="#7F8C8D" FontStyle="Italic"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Capçalera de dies -->
+                        <!-- Cartell de dies festius de la setmana -->
+                        <Border DockPanel.Dock="Top" Margin="0,0,0,8" CornerRadius="6" Padding="10,6"
+                                Background="{DynamicResource BrushHolidayColumn}"
+                                BorderBrush="{DynamicResource BrushWarningHoliday}" BorderThickness="1">
+                            <TextBlock Text="{Binding InfoDia}"
+                                       Foreground="{DynamicResource BrushWarningHoliday}"
+                                       TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- Capçalera de dies (tipus calendari: nom + data, avui i festius) -->
                         <Grid DockPanel.Dock="Top" ColumnDefinitions="110,*,*,*,*,*" Margin="0,0,0,4">
-                            <TextBlock Grid.Column="0" Text="Hora" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Column="1" Text="Dilluns" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Column="2" Text="Dimarts" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Column="3" Text="Dimecres" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Column="4" Text="Dijous" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Column="5" Text="Divendres" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="0" Text="Hora" FontWeight="Bold" HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource BrushTextPrimary}"/>
+                            <ItemsControl Grid.Column="1" Grid.ColumnSpan="5" ItemsSource="{Binding DiesCapcalera}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1" Columns="5"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:DiaCapceleraVm">
+                                        <Border Margin="2" CornerRadius="4" Padding="4,3"
+                                                Background="{DynamicResource BrushSurfaceAlt}">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding Titol}" FontWeight="Bold"
+                                                           HorizontalAlignment="Center"
+                                                           Foreground="{DynamicResource BrushTextPrimary}"/>
+                                                <TextBlock Text="{Binding SubTitol}" FontSize="11"
+                                                           HorizontalAlignment="Center"
+                                                           Foreground="{DynamicResource BrushTextSecondary}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </Grid>
 
                         <!-- Missatge d'ajuda -->
-                        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0" Foreground="#7F8C8D"
+                        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                                   Foreground="{DynamicResource BrushTextSecondary}"
                                    Text="Fes clic sobre una classe per afegir o editar les notes d'aquella setmana. Les classes amb un punt verd ja tenen notes."/>
 
                         <!-- Graella d'horari -->
@@ -65,9 +91,11 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:FilaHorariViewModel">
                                         <Grid ColumnDefinitions="110,*,*,*,*,*" Margin="0,0,0,6" MinHeight="64">
-                                            <Border Grid.Column="0" Background="#F7F9FA"
+                                            <Border Grid.Column="0" Background="{DynamicResource BrushSurfaceAlt}"
+                                                    BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1"
                                                     CornerRadius="4" Margin="2">
                                                 <TextBlock Text="{Binding Franja}" FontSize="12"
+                                                           Foreground="{DynamicResource BrushTextPrimary}"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center" TextWrapping="Wrap"/>
                                             </Border>
@@ -351,7 +379,7 @@
         <!-- ================= OVERLAY: EDITOR DE NOTES ================= -->
         <Border IsVisible="{Binding MostraEditorNota}"
                 Background="#88000000">
-            <Border Background="White" CornerRadius="10" Width="560" MaxHeight="520"
+            <Border Background="{DynamicResource BrushSurface}" CornerRadius="10" Width="560" MaxHeight="520"
                     VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
                 <DockPanel LastChildFill="True">
                     <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
@@ -377,7 +405,7 @@
 
         <!-- ================= OVERLAY: ASSISTENT INICIAL ================= -->
         <Border IsVisible="{Binding MostraAssistent}" Background="#88000000">
-            <Border Background="White" CornerRadius="10" Width="760" MaxHeight="640"
+            <Border Background="{DynamicResource BrushSurface}" CornerRadius="10" Width="760" MaxHeight="640"
                     VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
                 <DockPanel LastChildFill="True">
                     <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,12">
@@ -519,23 +547,25 @@
             <Panel Margin="2">
                 <!-- Cel·la buida (sense classe) -->
                 <Border IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNull}}"
-                        Background="#FAFBFC" CornerRadius="4" BorderBrush="#ECECEC" BorderThickness="1"/>
+                        Background="{DynamicResource BrushSurface}" CornerRadius="4"
+                        BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1"/>
                 <!-- Cel·la amb classe -->
                 <Button IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNotNull}}"
                         Click="OnClasseClick" Padding="0" HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch" Background="Transparent" BorderThickness="0">
                     <Border CornerRadius="4" Padding="8" HorizontalAlignment="Stretch"
-                            Background="{Binding Color}">
+                            Background="{Binding FonsBrush}"
+                            BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1">
                         <StackPanel Spacing="2">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <Ellipse Width="8" Height="8" Fill="#27AE60"
+                                <Ellipse Width="8" Height="8" Fill="{DynamicResource BrushSuccess}"
                                          VerticalAlignment="Center"
                                          IsVisible="{Binding TeNota}"/>
                                 <TextBlock Text="{Binding NomAssignatura}" FontWeight="Bold"
-                                           Foreground="White" TextWrapping="Wrap"/>
+                                           Foreground="{Binding TextBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <TextBlock Text="{Binding Detall}" FontSize="11"
-                                       Foreground="#F5F5F5" TextWrapping="Wrap"/>
+                                       Foreground="{Binding TextDetallBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </Button>

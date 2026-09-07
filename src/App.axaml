@@ -8,6 +8,66 @@
         <local:ViewLocator />
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <!-- Tokens de color semàntics per tema. Es referencien amb DynamicResource
+             a tota la UI perquè el mode clar i el fosc es vegin bé (contrast AA).
+             MAI colors literals a les vistes: sempre aquests tokens. -->
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+
+                <!-- ===== TEMA CLAR ===== -->
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="ColBaseBackground">#F5F7FA</Color>
+                    <Color x:Key="ColSurface">#FFFFFF</Color>
+                    <Color x:Key="ColSurfaceAlt">#EEF2F6</Color>
+                    <Color x:Key="ColBorder">#D5DBE1</Color>
+                    <Color x:Key="ColTextPrimary">#1F2933</Color>
+                    <Color x:Key="ColTextSecondary">#5A6572</Color>
+                    <Color x:Key="ColAccent">#2F6FEB</Color>
+                    <Color x:Key="ColWarningHoliday">#B9770E</Color>
+                    <Color x:Key="ColHolidayColumn">#F0E6D2</Color>
+                    <Color x:Key="ColTodayColumn">#E3EDFB</Color>
+                    <Color x:Key="ColHeader">#2C3E50</Color>
+                    <Color x:Key="ColHeaderText">#FFFFFF</Color>
+                    <Color x:Key="ColSuccess">#1E874B</Color>
+                </ResourceDictionary>
+
+                <!-- ===== TEMA FOSC ===== -->
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="ColBaseBackground">#1A1E24</Color>
+                    <Color x:Key="ColSurface">#242A31</Color>
+                    <Color x:Key="ColSurfaceAlt">#2E353D</Color>
+                    <Color x:Key="ColBorder">#3C444D</Color>
+                    <Color x:Key="ColTextPrimary">#E7EAEE</Color>
+                    <Color x:Key="ColTextSecondary">#A7B0BA</Color>
+                    <Color x:Key="ColAccent">#5B9CFF</Color>
+                    <Color x:Key="ColWarningHoliday">#F0B65A</Color>
+                    <Color x:Key="ColHolidayColumn">#3A342A</Color>
+                    <Color x:Key="ColTodayColumn">#2A3646</Color>
+                    <Color x:Key="ColHeader">#12161B</Color>
+                    <Color x:Key="ColHeaderText">#E7EAEE</Color>
+                    <Color x:Key="ColSuccess">#54C98A</Color>
+                </ResourceDictionary>
+
+            </ResourceDictionary.ThemeDictionaries>
+
+            <!-- Pinzells que resolen el color segons el tema actiu. -->
+            <SolidColorBrush x:Key="BrushBaseBackground" Color="{DynamicResource ColBaseBackground}"/>
+            <SolidColorBrush x:Key="BrushSurface" Color="{DynamicResource ColSurface}"/>
+            <SolidColorBrush x:Key="BrushSurfaceAlt" Color="{DynamicResource ColSurfaceAlt}"/>
+            <SolidColorBrush x:Key="BrushBorder" Color="{DynamicResource ColBorder}"/>
+            <SolidColorBrush x:Key="BrushTextPrimary" Color="{DynamicResource ColTextPrimary}"/>
+            <SolidColorBrush x:Key="BrushTextSecondary" Color="{DynamicResource ColTextSecondary}"/>
+            <SolidColorBrush x:Key="BrushAccent" Color="{DynamicResource ColAccent}"/>
+            <SolidColorBrush x:Key="BrushWarningHoliday" Color="{DynamicResource ColWarningHoliday}"/>
+            <SolidColorBrush x:Key="BrushHolidayColumn" Color="{DynamicResource ColHolidayColumn}"/>
+            <SolidColorBrush x:Key="BrushTodayColumn" Color="{DynamicResource ColTodayColumn}"/>
+            <SolidColorBrush x:Key="BrushHeader" Color="{DynamicResource ColHeader}"/>
+            <SolidColorBrush x:Key="BrushHeaderText" Color="{DynamicResource ColHeaderText}"/>
+            <SolidColorBrush x:Key="BrushSuccess" Color="{DynamicResource ColSuccess}"/>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>

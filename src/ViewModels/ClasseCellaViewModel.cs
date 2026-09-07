@@ -26,4 +26,23 @@ public class ClasseCellaViewModel : ViewModelBase
     }
     public string Color => Classe.Assignatura?.Color ?? "#4F86C6";
     public bool TeNota { get; set; }
+
+    // Color de fons del bloc (color de l'assignatura).
+    public Avalonia.Media.IBrush FonsBrush
+        => new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse(Color));
+
+    // Color de text llegible sobre el fons (blanc o fosc segons luminància),
+    // perquè el nom de l'assignatura es vegi bé en qualsevol color i tema.
+    public Avalonia.Media.IBrush TextBrush
+        => ProgramacioDocent.Services.ContrastHelper.BrushTextSobre(Color);
+
+    // Variant més tènue del text per als detalls.
+    public Avalonia.Media.IBrush TextDetallBrush
+    {
+        get
+        {
+            var c = ProgramacioDocent.Services.ContrastHelper.TextSobre(Color);
+            return new Avalonia.Media.SolidColorBrush(c, 0.82);
+        }
+    }
 }
