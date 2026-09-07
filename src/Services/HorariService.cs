@@ -190,6 +190,24 @@ VALUES ($v, $d, $f, $a, $g, $au); SELECT last_insert_rowid();";
         cmd.ExecuteNonQuery();
     }
 
+    // Buida completament l'horari: elimina classes, franjes, assignatures i
+    // versions. ATENCIÓ: en esborrar les classes, les notes associades també
+    // s'eliminen per la clau forana ON DELETE CASCADE. Fer sempre una còpia de
+    // seguretat abans de cridar aquest mètode.
+    public void BuidaHorari()
+    {
+        using var conn = _db.ObreConnexio();
+        using var tx = conn.BeginTransaction();
+        foreach (var taula in new[] { "ClasseHorari", "FranjaHorari", "Assignatura", "VersioHorari" })
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.Transaction = tx;
+            cmd.CommandText = $"DELETE FROM {taula};";
+            cmd.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
+
     // Retorna totes les classes d'una versió d'horari, amb franja i assignatura.
     public List<ClasseHorari> ObteClasses(int versioId)
     {

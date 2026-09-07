@@ -22,6 +22,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ConfigService _config;
     private readonly InformeService _informe;
     private readonly BackupService _backup;
+    private readonly Data.Database _db;
     private static readonly CultureInfo Ca = new("ca-ES");
 
     // S'emet quan l'usuari canvia el tema, perquè App l'apliqui a l'instant.
@@ -67,7 +68,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(
         HorariService horari, NotesService notes, CalendariService calendari,
-        ConfigService config, InformeService informe, BackupService backup)
+        ConfigService config, InformeService informe, BackupService backup,
+        Data.Database db)
     {
         _horari = horari;
         _notes = notes;
@@ -75,6 +77,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _config = config;
         _informe = informe;
         _backup = backup;
+        _db = db;
 
         _configuracio = _config.Carrega();
         _formatSeleccionat = _configuracio.FormatInformePreferit;
@@ -789,6 +792,99 @@ public partial class MainWindowViewModel : ViewModelBase
         var url = _urlDescarrega ?? _urlPaginaRelease;
         if (!string.IsNullOrEmpty(url))
             ObreUrlDemanada?.Invoke(url);
+    }
+
+    // ---- Esborrar dades (amb confirmació i còpia de seguretat prèvia) ----
+    [ObservableProperty] private bool _mostraConfirmacio;
+    [ObservableProperty] private string _titolConfirmacio = string.Empty;
+    [ObservableProperty] private string _textConfirmacio = string.Empty;
+    [ObservableProperty] private string _missatgeEsborrat = string.Empty;
+    private Action? _accioConfirmada;
+
+    private void DemanaConfirmacio(string titol, string text, Action accio)
+    {
+        TitolConfirmacio = titol;
+        TextConfirmacio = text;
+        _accioConfirmada = accio;
+        MostraConfirmacio = true;
+    }
+
+    [RelayCommand]
+    private void CancelaConfirmacio()
+    {
+        MostraConfirmacio = false;
+        _accioConfirmada = null;
+    }
+
+    [RelayCommand]
+    private void ConfirmaAccio()
+    {
+        MostraConfirmacio = false;
+        var accio = _accioConfirmada;
+        _accioConfirmada = null;
+        accio?.Invoke();
+    }
+
+    // Fa una còpia de seguretat abans d'una operació destructiva (best-effort).
+    private void BackupPreviBorrat(string sufix)
+    {
+        try { _backup.CreaCopia(sufix); RefrescaCopies(); } catch { /* continua igualment */ }
+    }
+
+    [RelayCommand]
+    private void BuidaHorari()
+    {
+        DemanaConfirmacio(
+            "Buidar l'horari",
+            "S'esborraran totes les assignatures, franjes i classes de l'horari. " +
+            "ATENCIÓ: també s'esborraran les NOTES associades a aquestes classes. " +
+            "Es farà una còpia de seguretat abans. Vols continuar?",
+            () =>
+            {
+                BackupPreviBorrat("abans_buidar_horari");
+                _horari.BuidaHorari();
+                _configuracio.AssistentCompletat = false;
+                _configuracio.VersioHorariActivaId = 0;
+                _config.Desa(_configuracio);
+                MissatgeEsborrat = "Horari buidat. En reiniciar l'aplicació, o ara mateix, es tornarà a mostrar l'assistent.";
+                // Rellança l'assistent per definir l'horari de nou.
+                IniciaAssistent();
+            });
+    }
+
+    [RelayCommand]
+    private void EsborraNotes()
+    {
+        DemanaConfirmacio(
+            "Esborrar totes les notes",
+            "S'esborraran TOTES les notes de totes les classes i setmanes. " +
+            "L'horari es conserva. Es farà una còpia de seguretat abans. Vols continuar?",
+            () =>
+            {
+                BackupPreviBorrat("abans_esborrar_notes");
+                _notes.EsborraTotesLesNotes();
+                CarregaHorari();
+                RefrescaGraella();
+                MissatgeEsborrat = "S'han esborrat totes les notes.";
+            });
+    }
+
+    [RelayCommand]
+    private void RestableixTot()
+    {
+        DemanaConfirmacio(
+            "Restablir-ho tot",
+            "S'esborraran l'horari i TOTES les notes, i es tornarà a l'assistent inicial. " +
+            "Es conserven el calendari de festius, el tema i el perfil. " +
+            "Es farà una còpia de seguretat abans. Vols continuar?",
+            () =>
+            {
+                BackupPreviBorrat("abans_restablir_tot");
+                _db.RestableixDades();
+                _configuracio = _config.Carrega();
+                MissatgeEsborrat = "Dades restablertes.";
+                IniciaAssistent();
+            });
     }
 }
 

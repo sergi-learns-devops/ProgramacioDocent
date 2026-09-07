@@ -353,6 +353,41 @@
                                 </Border>
                             </StackPanel>
 
+                            <Separator/>
+
+                            <!-- Esborrar dades -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Esborrar dades" FontSize="18" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushTextPrimary}"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
+                                           Text="Accions per esborrar dades. Totes fan una còpia de seguretat automàtica abans, de manera que es poden desfer restaurant la còpia des de l'apartat anterior."/>
+
+                                <Border Background="{DynamicResource BrushSurfaceAlt}" CornerRadius="6" Padding="12">
+                                    <StackPanel Spacing="10">
+                                        <StackPanel Spacing="2">
+                                            <Button Content="Buida l'horari" Command="{Binding BuidaHorariCommand}"/>
+                                            <TextBlock FontSize="12" TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource BrushTextSecondary}"
+                                                       Text="Esborra assignatures, franjes i classes (i les seves notes) i torna a obrir l'assistent per refer l'horari. Útil si les hores o classes no són correctes."/>
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <Button Content="Esborra totes les notes" Command="{Binding EsborraNotesCommand}"/>
+                                            <TextBlock FontSize="12" TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource BrushTextSecondary}"
+                                                       Text="Esborra només les notes; l'horari es conserva."/>
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <Button Content="Restableix-ho tot" Command="{Binding RestableixTotCommand}"/>
+                                            <TextBlock FontSize="12" TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource BrushTextSecondary}"
+                                                       Text="Esborra l'horari i totes les notes i torna a l'estat inicial (conserva festius, tema i perfil)."/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="{Binding MissatgeEsborrat}" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource BrushSuccess}"/>
+                            </StackPanel>
+
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
@@ -383,6 +418,23 @@
                              Watermark="Escriu aquí les notes sobre la classe i els alumnes…"
                              VerticalContentAlignment="Top" MinHeight="240"/>
                 </DockPanel>
+            </Border>
+        </Border>
+
+        <!-- ================= OVERLAY: CONFIRMACIÓ ================= -->
+        <Border IsVisible="{Binding MostraConfirmacio}" Background="#88000000">
+            <Border Background="{DynamicResource BrushSurface}" CornerRadius="10" Width="480"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{Binding TitolConfirmacio}" FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource BrushTextPrimary}"/>
+                    <TextBlock Text="{Binding TextConfirmacio}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource BrushTextPrimary}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                        <Button Content="Cancel·la" Command="{Binding CancelaConfirmacioCommand}" Padding="16,8"/>
+                        <Button Content="Sí, continua" Command="{Binding ConfirmaAccioCommand}" Padding="16,8"/>
+                    </StackPanel>
+                </StackPanel>
             </Border>
         </Border>
 

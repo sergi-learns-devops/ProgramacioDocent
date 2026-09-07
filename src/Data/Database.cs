@@ -109,4 +109,28 @@ VALUES ('2026-2027', '2026-09-08', '2027-06-21', 'PDF', 0, 0);";
         var resultat = cmd.ExecuteScalar() as string;
         return string.Equals(resultat, "ok", StringComparison.OrdinalIgnoreCase);
     }
+
+    // Restableix totes les dades de l'usuari: esborra notes, classes, franjes,
+    // assignatures i versions, i torna a deixar l'assistent inicial pendent.
+    // CONSERVA el calendari de festius i la configuració (tema, perfil).
+    // Fer sempre una còpia de seguretat abans.
+    public void RestableixDades()
+    {
+        using var conn = ObreConnexio();
+        using var tx = conn.BeginTransaction();
+        foreach (var taula in new[] { "NotaSetmanal", "ClasseHorari", "FranjaHorari", "Assignatura", "VersioHorari" })
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.Transaction = tx;
+            cmd.CommandText = $"DELETE FROM {taula};";
+            cmd.ExecuteNonQuery();
+        }
+        using (var cfg = conn.CreateCommand())
+        {
+            cfg.Transaction = tx;
+            cfg.CommandText = "UPDATE Configuracio SET AssistentCompletat = 0, VersioHorariActivaId = 0;";
+            cfg.ExecuteNonQuery();
+        }
+        tx.Commit();
+    }
 }

@@ -42,7 +42,7 @@ public partial class App : Application
 
             var mainVm = new MainWindowViewModel(
                 horariService, notesService, calendariService,
-                configService, informeService, backupService);
+                configService, informeService, backupService, db);
 
             // Quan l'usuari canvia el tema des de Configuració, s'aplica a l'instant.
             mainVm.TemaCanviat += AplicaTema;

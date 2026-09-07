@@ -68,6 +68,16 @@ VALUES ($c, $d, $t, $cr, $mo);";
         }
     }
 
+    // Esborra TOTES les notes, conservant l'horari (franjes, assignatures, classes).
+    // Fer sempre una còpia de seguretat abans.
+    public void EsborraTotesLesNotes()
+    {
+        using var conn = _db.ObreConnexio();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM NotaSetmanal;";
+        cmd.ExecuteNonQuery();
+    }
+
     // Fila d'informe: nota amb dades d'assignatura i data, per als reports.
     public record FilaInforme(
         string Assignatura, string Curs, DateTime DataDilluns,

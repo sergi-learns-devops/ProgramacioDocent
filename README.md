@@ -44,6 +44,10 @@ classes, prendre notes setmanals per classe i generar informes per assignatura.
   - **Actualitzacions**: comprovador assistit que consulta si hi ha una versió
     nova a GitHub i guia la descàrrega i instal·lació manual (vegeu la secció 2,
     "Com actualitzar l'aplicació").
+  - **Esborrar dades**: opcions per **buidar l'horari** (i refer-lo amb
+    l'assistent), **esborrar totes les notes** (conservant l'horari) o
+    **restablir-ho tot**. Totes demanen confirmació i fan una **còpia de
+    seguretat automàtica abans**, de manera que es poden desfer restaurant-la.
 - **Robustesa de dades**: base de dades SQLite amb **WAL**, **migracions
   d'esquema versionades** (per no perdre dades en actualitzar) i **còpies de
   seguretat** rotatives.
