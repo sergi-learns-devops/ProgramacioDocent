@@ -303,6 +303,45 @@
                                            Foreground="#7F8C8D" FontSize="12" TextWrapping="Wrap"/>
                             </StackPanel>
 
+                            <Separator/>
+
+                            <!-- Actualitzacions -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Actualitzacions" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding VersioActualApp, StringFormat='Versió instal·lada: {0}'}"
+                                           Foreground="#7F8C8D"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                           Text="Comprova si hi ha una versió nova a GitHub. Aquesta és l'única funció que fa servir Internet, i només quan hi fas clic."/>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="Comprova si hi ha actualitzacions"
+                                            Command="{Binding ComprovaActualitzacionsCommand}"
+                                            IsEnabled="{Binding !ComprovantActualitzacio}"/>
+                                    <Button Content="Baixa la nova versió" Classes="accent"
+                                            Command="{Binding BaixaActualitzacioCommand}"
+                                            IsVisible="{Binding HiHaActualitzacio}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding MissatgeActualitzacio}" TextWrapping="Wrap" Foreground="#2980B9"/>
+
+                                <!-- Novetats de la versió nova -->
+                                <Border IsVisible="{Binding HiHaActualitzacio}"
+                                        Background="#F4F6F7" CornerRadius="6" Padding="12" MaxHeight="160">
+                                    <ScrollViewer>
+                                        <TextBlock Text="{Binding NotesActualitzacio}" TextWrapping="Wrap" FontSize="12"/>
+                                    </ScrollViewer>
+                                </Border>
+
+                                <!-- Instruccions d'actualització -->
+                                <Border IsVisible="{Binding HiHaActualitzacio}"
+                                        Background="#EAF7EE" BorderBrush="#27AE60" BorderThickness="1"
+                                        CornerRadius="6" Padding="12">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Com actualitzar (sense perdre dades)" FontWeight="Bold"/>
+                                        <TextBlock TextWrapping="Wrap" FontSize="12"
+                                                   Text="1. Fes clic a 'Baixa la nova versió' i desa el ZIP.&#x0a;2. Tanca l'aplicació.&#x0a;3. Descomprimeix el ZIP A SOBRE de la carpeta actual (substituint els fitxers).&#x0a;4. Torna a obrir 'ProgramacioDocent.exe'.&#x0a;&#x0a;Les teves dades (horari, notes, perfil) es conserven perquè es desen a la carpeta 'dades', que no es toca. A més, es fa una còpia de seguretat automàtica en arrencar."/>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>

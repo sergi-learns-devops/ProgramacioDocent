@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ProgramacioDocent.Models;
@@ -626,6 +627,66 @@ public partial class MainWindowViewModel : ViewModelBase
         RefrescaConfigHorari();
         RefrescaGraella();
         MissatgeHorari = "Classe eliminada.";
+    }
+
+    // ---- Actualitzacions (actualitzador assistit) ----
+    private readonly UpdateService _update = new();
+
+    // S'emet perquè la vista obri una URL al navegador per defecte.
+    public event Action<string>? ObreUrlDemanada;
+
+    public string VersioActualApp => "v" + UpdateService.VersioActual();
+    [ObservableProperty] private bool _comprovantActualitzacio;
+    [ObservableProperty] private string _missatgeActualitzacio = string.Empty;
+    [ObservableProperty] private string _notesActualitzacio = string.Empty;
+    [ObservableProperty] private bool _hiHaActualitzacio;
+    private string? _urlDescarrega;
+    private string? _urlPaginaRelease;
+
+    [RelayCommand]
+    private async Task ComprovaActualitzacions()
+    {
+        if (ComprovantActualitzacio) return;
+        ComprovantActualitzacio = true;
+        HiHaActualitzacio = false;
+        NotesActualitzacio = string.Empty;
+        MissatgeActualitzacio = "Comprovant si hi ha actualitzacions…";
+
+        var r = await _update.ComprovaAsync();
+
+        switch (r.Estat)
+        {
+            case UpdateService.Estat.AlDia:
+                MissatgeActualitzacio = $"Ja tens l'última versió (v{r.VersioActual}).";
+                break;
+            case UpdateService.Estat.HiHaActualitzacio:
+                HiHaActualitzacio = true;
+                _urlDescarrega = r.UrlZip;
+                _urlPaginaRelease = r.UrlPaginaRelease;
+                MissatgeActualitzacio =
+                    $"Hi ha una versió nova disponible: v{r.VersioNova} (tens la v{r.VersioActual}).";
+                NotesActualitzacio = string.IsNullOrWhiteSpace(r.Notes) ? string.Empty : r.Notes!;
+                break;
+            case UpdateService.Estat.SenseConnexio:
+                MissatgeActualitzacio =
+                    "No s'ha pogut comprovar: " + r.MissatgeError +
+                    " Pots descarregar l'última versió manualment quan tinguis connexió.";
+                break;
+            default:
+                MissatgeActualitzacio = "No s'ha pogut comprovar: " + r.MissatgeError;
+                break;
+        }
+
+        ComprovantActualitzacio = false;
+    }
+
+    [RelayCommand]
+    private void BaixaActualitzacio()
+    {
+        // Obre la descàrrega del ZIP si existeix; si no, la pàgina de la release.
+        var url = _urlDescarrega ?? _urlPaginaRelease;
+        if (!string.IsNullOrEmpty(url))
+            ObreUrlDemanada?.Invoke(url);
     }
 }
 

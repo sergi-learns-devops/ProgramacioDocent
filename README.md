@@ -38,6 +38,9 @@ classes, prendre notes setmanals per classe i generar informes per assignatura.
   - **Còpies de seguretat**: es fa una còpia **automàtica en arrencar**; també
     se'n poden crear manualment i **restaurar-ne** una d'anterior (amb validació
     d'integritat prèvia).
+  - **Actualitzacions**: comprovador assistit que consulta si hi ha una versió
+    nova a GitHub i guia la descàrrega i instal·lació manual (vegeu la secció 2,
+    "Com actualitzar l'aplicació").
 - **Robustesa de dades**: base de dades SQLite amb **WAL**, **migracions
   d'esquema versionades** (per no perdre dades en actualitzar) i **còpies de
   seguretat** rotatives.
@@ -61,6 +64,32 @@ de xarxa, `Program Files`, USB protegit), l'aplicació passa automàticament a:
 ```
 
 La ubicació activa es mostra a la pestanya **Informació** de l'aplicació.
+
+### Com actualitzar l'aplicació (sense perdre dades)
+
+L'aplicació inclou un **comprovador d'actualitzacions assistit** a
+**Configuració → Actualitzacions**. El procés és manual i respectuós amb els
+equips capats (no s'automodifica ni es rellança sola):
+
+1. A **Configuració → Actualitzacions**, fes clic a **"Comprova si hi ha
+   actualitzacions"**. Aquesta és **l'única** funció que fa servir Internet, i
+   només quan hi fas clic. Si no hi ha connexió, ho indica sense fallar.
+2. Si hi ha una versió nova, mostra el número, les novetats i un botó
+   **"Baixa la nova versió"** (obre la descàrrega del ZIP o la pàgina de la
+   release).
+3. **Tanca l'aplicació.**
+4. **Descomprimeix el ZIP a sobre de la carpeta actual**, substituint
+   `ProgramacioDocent.exe` i les DLL.
+5. Torna a obrir `ProgramacioDocent.exe`.
+
+> **Les teves dades es conserven.** L'horari, les notes i el perfil es desen a la
+> carpeta `dades/` (o a `%LOCALAPPDATA%\ProgramacioDocent`), que **no es toca** en
+> actualitzar. A més, l'aplicació fa una **còpia de seguretat automàtica** en
+> arrencar, i el sistema de **migracions** adapta la base de dades a la nova
+> versió si cal, sense pèrdua de dades.
+
+Si l'equip **no té accés a Internet**, pots actualitzar igualment: descarrega el
+ZIP en un altre equip, copia'l per USB o xarxa interna i segueix els passos 3–5.
 
 ---
 

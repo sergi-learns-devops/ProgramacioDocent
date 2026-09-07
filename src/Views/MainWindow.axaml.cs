@@ -11,6 +11,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object? sender, System.EventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+            vm.ObreUrlDemanada += ObreFitxer;
     }
 
     // Clic sobre una classe de la graella: obre l'editor de notes.
