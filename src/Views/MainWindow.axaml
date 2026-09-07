@@ -52,10 +52,14 @@
                                        TextWrapping="Wrap" VerticalAlignment="Center"/>
                         </Border>
 
-                        <!-- Capçalera de dies (tipus calendari: nom + data, avui i festius) -->
-                        <Grid DockPanel.Dock="Top" ColumnDefinitions="110,*,*,*,*,*" Margin="0,0,0,4">
-                            <TextBlock Grid.Column="0" Text="Hora" FontWeight="Bold" HorizontalAlignment="Center"
-                                       Foreground="{DynamicResource BrushTextPrimary}"/>
+                        <!-- Missatge d'ajuda -->
+                        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                                   Foreground="{DynamicResource BrushTextSecondary}"
+                                   Text="Fes clic sobre un bloc de classe per afegir o editar les notes d'aquella setmana. Els blocs amb un punt verd ja tenen notes. La columna d'avui es ressalta i els dies festius es mostren atenuats."/>
+
+                        <!-- Capçalera de dies (fixa, alineada amb la graella) -->
+                        <Grid DockPanel.Dock="Top" x:Name="CapceleraCalendari"
+                              ColumnDefinitions="56,*,*,*,*,*" Margin="0,0,0,4">
                             <ItemsControl Grid.Column="1" Grid.ColumnSpan="5" ItemsSource="{Binding DiesCapcalera}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -80,40 +84,9 @@
                             </ItemsControl>
                         </Grid>
 
-                        <!-- Missatge d'ajuda -->
-                        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
-                                   Foreground="{DynamicResource BrushTextSecondary}"
-                                   Text="Fes clic sobre una classe per afegir o editar les notes d'aquella setmana. Les classes amb un punt verd ja tenen notes."/>
-
-                        <!-- Graella d'horari -->
+                        <!-- Graella tipus calendari (es construeix al codi darrere) -->
                         <ScrollViewer>
-                            <ItemsControl ItemsSource="{Binding FilesHorari}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:FilaHorariViewModel">
-                                        <Grid ColumnDefinitions="110,*,*,*,*,*" Margin="0,0,0,6" MinHeight="64">
-                                            <Border Grid.Column="0" Background="{DynamicResource BrushSurfaceAlt}"
-                                                    BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1"
-                                                    CornerRadius="4" Margin="2">
-                                                <TextBlock Text="{Binding Franja}" FontSize="12"
-                                                           Foreground="{DynamicResource BrushTextPrimary}"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center" TextWrapping="Wrap"/>
-                                            </Border>
-
-                                            <ContentControl Grid.Column="1" Content="{Binding Celles[0]}"
-                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
-                                            <ContentControl Grid.Column="2" Content="{Binding Celles[1]}"
-                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
-                                            <ContentControl Grid.Column="3" Content="{Binding Celles[2]}"
-                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
-                                            <ContentControl Grid.Column="4" Content="{Binding Celles[3]}"
-                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
-                                            <ContentControl Grid.Column="5" Content="{Binding Celles[4]}"
-                                                            ContentTemplate="{StaticResource CellaTemplate}"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <Grid x:Name="CalendariHost" Margin="0,0,0,6"/>
                         </ScrollViewer>
                     </DockPanel>
                 </TabItem>
@@ -552,34 +525,5 @@
 
     <Window.Resources>
         <views:DiaConverter x:Key="DiaConverter"/>
-        <!-- Plantilla d'una cel·la de classe a la graella -->
-        <DataTemplate x:Key="CellaTemplate" x:DataType="vm:ClasseCellaViewModel">
-            <Panel Margin="2">
-                <!-- Cel·la buida (sense classe) -->
-                <Border IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNull}}"
-                        Background="{DynamicResource BrushSurface}" CornerRadius="4"
-                        BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1"/>
-                <!-- Cel·la amb classe -->
-                <Button IsVisible="{Binding ., Converter={x:Static ObjectConverters.IsNotNull}}"
-                        Click="OnClasseClick" Padding="0" HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch" Background="Transparent" BorderThickness="0">
-                    <Border CornerRadius="4" Padding="8" HorizontalAlignment="Stretch"
-                            Background="{Binding FonsBrush}"
-                            BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1">
-                        <StackPanel Spacing="2">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <Ellipse Width="8" Height="8" Fill="{DynamicResource BrushSuccess}"
-                                         VerticalAlignment="Center"
-                                         IsVisible="{Binding TeNota}"/>
-                                <TextBlock Text="{Binding NomAssignatura}" FontWeight="Bold"
-                                           Foreground="{Binding TextBrush}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                            <TextBlock Text="{Binding Detall}" FontSize="11"
-                                       Foreground="{Binding TextDetallBrush}" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-                </Button>
-            </Panel>
-        </DataTemplate>
     </Window.Resources>
 </Window>

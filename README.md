@@ -23,8 +23,11 @@ classes, prendre notes setmanals per classe i generar informes per assignatura.
   **Configuració** (reducció de jornada, canvi de curs, etc.). L'horari es
   versiona, de manera que canviar-lo **no esborra les notes ja preses** amb
   l'horari anterior.
-- **Vista d'horari setmanal** (dilluns–divendres) a la part superior. Es navega
-  per setmanes i es marquen els dies festius de Catalunya.
+- **Vista d'horari tipus calendari** (dilluns–divendres), semblant a Google
+  Calendar: eix de temps vertical, cada classe es mostra com un bloc amb
+  **alçada proporcional a la seva durada** i color per assignatura. La columna
+  del **dia actual** es ressalta, els **dies festius** apareixen atenuats i les
+  hores sense classe queden com a espais buits. Es navega per setmanes.
 - **Notes per classe i setmana**: en fer clic sobre una classe de la graella,
   s'obre un editor de **text lliure** per anotar el que calgui sobre la classe i
   els alumnes. Les classes amb notes es marquen amb un punt verd.

@@ -299,8 +299,85 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         RefrescaCapceleraDies();
+        RefrescaCalendari();
         ActualitzaTitolSetmana();
     }
+
+    // ===== Layout tipus Google Calendar =====
+    public ObservableCollection<BlocCalendariVm> BlocsCalendari { get; } = new();
+    public ObservableCollection<ColumnaDiaVm> ColumnesDia { get; } = new();
+    public ObservableCollection<EtiquetaHoraVm> EtiquetesHora { get; } = new();
+
+    // Alçada d'una fila de 30 min (px). L'usa el XAML per dimensionar la graella.
+    public double AlcadaFila => 30;
+    [ObservableProperty] private int _nombreFiles = 20; // per defecte 10h * 2
+
+    private const int MinutsPerFila = 30;
+    private int _minutBase; // minut del dia on comença la graella (p. ex. 08:00 -> 480)
+
+    // Calcula la posició de cada classe segons la seva hora, per a la vista calendari.
+    private void RefrescaCalendari()
+    {
+        BlocsCalendari.Clear();
+        ColumnesDia.Clear();
+        EtiquetesHora.Clear();
+
+        // Rang horari: de l'inici més matiner al final més tardà de totes les franjes.
+        if (_franjes.Count == 0)
+        {
+            NombreFiles = 0;
+            return;
+        }
+
+        int minInici = _franjes.Min(f => f.HoraInici.Hour * 60 + f.HoraInici.Minute);
+        int maxFi = _franjes.Max(f => f.HoraFi.Hour * 60 + f.HoraFi.Minute);
+
+        // Arrodonim l'inici cap avall a la mitja hora i el final cap amunt.
+        _minutBase = (minInici / MinutsPerFila) * MinutsPerFila;
+        int finalArrod = ((maxFi + MinutsPerFila - 1) / MinutsPerFila) * MinutsPerFila;
+        NombreFiles = Math.Max(1, (finalArrod - _minutBase) / MinutsPerFila);
+
+        // Eix d'hores: una etiqueta a cada hora en punt.
+        for (int m = _minutBase; m < finalArrod; m += MinutsPerFila)
+        {
+            if (m % 60 == 0)
+            {
+                int fila = (m - _minutBase) / MinutsPerFila;
+                EtiquetesHora.Add(new EtiquetaHoraVm(fila, $"{m / 60:00}:00"));
+            }
+        }
+
+        // Columnes (fons): dia actual i festius.
+        for (int dia = 1; dia <= 5; dia++)
+        {
+            var data = SetmanaActual.AddDays(dia - 1);
+            bool esAvui = data.Date == DateTime.Today;
+            bool esFestiu = _calendari.FestiuDe(data) != null;
+            ColumnesDia.Add(new ColumnaDiaVm(dia, esAvui, esFestiu));
+        }
+
+        // Blocs de classe posicionats per hora d'inici i durada.
+        foreach (var classe in _classes)
+        {
+            if (classe.Franja == null) continue;
+            int ini = classe.Franja.HoraInici.Hour * 60 + classe.Franja.HoraInici.Minute;
+            int fi = classe.Franja.HoraFi.Hour * 60 + classe.Franja.HoraFi.Minute;
+
+            int fila = (ini - _minutBase) / MinutsPerFila;
+            int span = Math.Max(1, (fi - ini) / MinutsPerFila);
+            if (fila < 0) fila = 0;
+
+            var bloc = new BlocCalendariVm(classe, fila, span, classe.DiaSetmana);
+            var nota = _notes.ObteNota(classe.Id, SetmanaActual);
+            bloc.TeNota = nota != null && !string.IsNullOrWhiteSpace(nota.Text);
+            BlocsCalendari.Add(bloc);
+        }
+
+        CalendariActualitzat?.Invoke();
+    }
+
+    // S'emet quan cal redibuixar la graella de calendari (canvi de setmana, etc.).
+    public event Action? CalendariActualitzat;
 
     // Capçalera de dies tipus calendari: nom + data, marca del dia actual i festius.
     public ObservableCollection<DiaCapceleraVm> DiesCapcalera { get; } = new();
@@ -370,10 +447,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // ---------------- Editor de notes ----------------
 
-    // S'invoca en fer clic sobre una classe de la graella.
-    public void ObreNota(ClasseCellaViewModel cella)
+    // S'invoca en fer clic sobre una classe de la graella (vista de taula).
+    public void ObreNota(ClasseCellaViewModel cella) => ObreNotaClasse(cella.Classe);
+
+    // S'invoca en fer clic sobre un bloc de la vista calendari.
+    public void ObreNota(BlocCalendariVm bloc) => ObreNotaClasse(bloc.Classe);
+
+    // Lògica comuna d'obertura de l'editor de notes per a una classe.
+    private void ObreNotaClasse(ClasseHorari classe)
     {
-        var classe = cella.Classe;
         // Determina el dia concret (columna) de la classe dins la setmana.
         _diaSeleccionat = SetmanaActual.AddDays(classe.DiaSetmana - 1);
         _classeSeleccionada = classe;
