@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:ProgramacioDocent.ViewModels"
+        xmlns:views="clr-namespace:ProgramacioDocent.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
@@ -141,6 +142,170 @@
                                    Foreground="#7F8C8D" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
                     </StackPanel>
                 </TabItem>
+
+                <!-- ====== PESTANYA CONFIGURACIÓ ====== -->
+                <TabItem Header="Configuració">
+                    <ScrollViewer>
+                        <StackPanel Margin="24" Spacing="24" MaxWidth="820" HorizontalAlignment="Left">
+
+                            <!-- Aparença / Tema -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Aparença" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="Mode de color de l'aplicació." Foreground="#7F8C8D"/>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="Tema:" VerticalAlignment="Center"/>
+                                    <ComboBox ItemsSource="{Binding OpcionsTema}"
+                                              SelectedItem="{Binding TemaSeleccionat}" Width="200"/>
+                                </StackPanel>
+                                <TextBlock Foreground="#7F8C8D" FontSize="12"
+                                           Text="'Sistema' segueix la configuració de Windows. El canvi s'aplica immediatament."/>
+                            </StackPanel>
+
+                            <Separator/>
+
+                            <!-- Perfil del professor -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Perfil del professor" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="Informació bàsica (opcional). Es podrà mostrar als informes en el futur."
+                                           Foreground="#7F8C8D" TextWrapping="Wrap"/>
+                                <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Nom" VerticalAlignment="Center" Margin="0,4"/>
+                                    <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding ProfNom}" Watermark="Nom" Margin="0,4"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Cognoms" VerticalAlignment="Center" Margin="0,4"/>
+                                    <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding ProfCognoms}" Watermark="Cognoms" Margin="0,4"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Centre" VerticalAlignment="Center" Margin="0,4"/>
+                                    <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding ProfCentre}" Watermark="Nom del centre educatiu" Margin="0,4"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Departament" VerticalAlignment="Center" Margin="0,4"/>
+                                    <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding ProfDepartament}" Watermark="p. ex. Ciències" Margin="0,4"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Correu" VerticalAlignment="Center" Margin="0,4"/>
+                                    <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding ProfEmail}" Watermark="correu@centre.cat" Margin="0,4"/>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="Desa el perfil" Classes="accent" Command="{Binding DesaPerfilCommand}"/>
+                                    <TextBlock Text="{Binding MissatgePerfil}" Foreground="#27AE60" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Separator/>
+
+                            <!-- Edició de l'horari -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Edició de l'horari" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                           Text="Afegeix assignatures i franjes, i col·loca classes a la graella. Els canvis es reflecteixen a la pestanya Horari."/>
+
+                                <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto">
+                                    <!-- Assignatures -->
+                                    <StackPanel Grid.Column="0" Spacing="6">
+                                        <TextBlock Text="Assignatures" FontWeight="SemiBold"/>
+                                        <ItemsControl ItemsSource="{Binding AssignaturesConfig}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Margin="0,2" Text="{Binding Nom}"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Grid ColumnDefinitions="*,*,Auto">
+                                            <TextBox Grid.Column="0" Text="{Binding NovaAssignaturaNom}" Watermark="Nom"/>
+                                            <TextBox Grid.Column="1" Text="{Binding NovaAssignaturaCurs}" Watermark="Curs" Margin="6,0,0,0"/>
+                                            <Button Grid.Column="2" Content="+" Command="{Binding AfegeixAssignaturaConfigCommand}" Margin="6,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- Franjes -->
+                                    <StackPanel Grid.Column="2" Spacing="6">
+                                        <TextBlock Text="Franjes horàries" FontWeight="SemiBold"/>
+                                        <ItemsControl ItemsSource="{Binding FranjesConfig}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Margin="0,2" Text="{Binding Etiqueta}"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Grid ColumnDefinitions="*,*,Auto">
+                                            <TextBox Grid.Column="0" Text="{Binding NovaFranjaInici}" Watermark="08:00"/>
+                                            <TextBox Grid.Column="1" Text="{Binding NovaFranjaFi}" Watermark="09:00" Margin="6,0,0,0"/>
+                                            <Button Grid.Column="2" Content="+" Command="{Binding AfegeixFranjaConfigCommand}" Margin="6,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Afegir classe -->
+                                <TextBlock Text="Afegeix una classe a la graella" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <ComboBox Grid.Column="0" ItemsSource="{Binding DiesSetmanaOpcions}"
+                                              SelectedItem="{Binding NovaClasseDia}" Width="110">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding, Converter={StaticResource DiaConverter}}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding AssignaturesConfig}"
+                                              SelectedItem="{Binding NovaClasseAssignatura}" Width="160" Margin="6,0,0,0">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Nom}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <ComboBox Grid.Column="2" ItemsSource="{Binding FranjesConfig}"
+                                              SelectedItem="{Binding NovaClasseFranja}" Width="130" Margin="6,0,0,0">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Etiqueta}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBox Grid.Column="3" Text="{Binding NovaClasseGrup}" Watermark="Grup" Width="80" Margin="6,0,0,0"/>
+                                    <TextBox Grid.Column="4" Text="{Binding NovaClasseAula}" Watermark="Aula" Width="80" Margin="6,0,0,0"/>
+                                    <Button Grid.Column="5" Content="Afegeix" Command="{Binding AfegeixClasseConfigCommand}" Margin="6,0,0,0"/>
+                                </Grid>
+                                <TextBlock Foreground="#7F8C8D" FontSize="12"
+                                           Text="(El desplegable de dia mostra 1=Dilluns … 5=Divendres)"/>
+
+                                <!-- Llista de classes existents -->
+                                <TextBlock Text="Classes de l'horari actual" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                                <ItemsControl ItemsSource="{Binding ClassesConfig}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                                    <Run Text="{Binding DiaSetmana, Converter={StaticResource DiaConverter}}"/>
+                                                    <Run Text=" · "/><Run Text="{Binding Assignatura.Nom}"/>
+                                                    <Run Text=" · "/><Run Text="{Binding Franja.Etiqueta}"/>
+                                                </TextBlock>
+                                                <Button Grid.Column="1" Content="Elimina"
+                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaClasseConfigCommand}"
+                                                        CommandParameter="{Binding}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="{Binding MissatgeHorari}" Foreground="#27AE60"/>
+                            </StackPanel>
+
+                            <Separator/>
+
+                            <!-- Còpies de seguretat -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Còpies de seguretat" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                           Text="Es fa una còpia automàtica en obrir l'aplicació. També pots crear-ne una manualment o restaurar-ne una d'anterior."/>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="Crea una còpia ara" Command="{Binding CreaCopiaSeguretatCommand}"/>
+                                    <Button Content="Restaura la seleccionada" Command="{Binding RestauraCopiaSeguretatCommand}"/>
+                                </StackPanel>
+                                <ListBox ItemsSource="{Binding Copies}" SelectedItem="{Binding CopiaSeleccionada}"
+                                         MaxHeight="180">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Descripcio}"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <TextBlock Text="{Binding MissatgeBackup}" Foreground="#2980B9" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding RutaDades, StringFormat='Ubicació de les dades: {0}'}"
+                                           Foreground="#7F8C8D" FontSize="12" TextWrapping="Wrap"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
             </TabControl>
         </DockPanel>
 
@@ -153,6 +318,8 @@
                     <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
                         <TextBlock Text="{Binding TitolNota}" FontSize="18" FontWeight="Bold"/>
                         <TextBlock Text="{Binding SubtitolNota}" Foreground="#7F8C8D"/>
+                        <TextBlock Foreground="#B9770E" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   Text="Protecció de dades: evita escriure noms complets d'alumnes; fes servir inicials o codis."/>
                     </StackPanel>
 
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
@@ -178,60 +345,128 @@
                         <TextBlock Text="Benvingut/da a Programació Docent" FontSize="20" FontWeight="Bold"/>
                         <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
                                    Text="Defineix el teu horari inicial. Podràs editar-lo més endavant (reducció de jornada, canvis de curs, etc.)."/>
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
+                            <Border Background="#2C3E50" CornerRadius="10" Padding="8,2" IsVisible="{Binding EsPas1}">
+                                <TextBlock Text="Pas 1 de 2 · Franjes i assignatures" Foreground="White" FontSize="12"/>
+                            </Border>
+                            <Border Background="#2C3E50" CornerRadius="10" Padding="8,2" IsVisible="{Binding EsPas2}">
+                                <TextBlock Text="Pas 2 de 2 · Col·loca les classes per dia" Foreground="White" FontSize="12"/>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
 
                     <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0" Spacing="6">
-                        <TextBlock Text="{Binding MissatgeAssistent}" Foreground="#E74C3C"/>
-                        <Button Content="Comença a fer servir l'aplicació" Classes="accent"
+                        <TextBlock Text="{Binding MissatgeAssistent}" Foreground="#E74C3C" TextWrapping="Wrap"/>
+                        <!-- Pas 1: continuar -->
+                        <Button Content="Continua →" Classes="accent" IsVisible="{Binding EsPas1}"
+                                Command="{Binding ContinuaAssistentCommand}"
+                                HorizontalAlignment="Right" Padding="18,10"/>
+                        <!-- Pas 2: finalitzar -->
+                        <Button Content="Comença a fer servir l'aplicació" Classes="accent" IsVisible="{Binding EsPas2}"
                                 Command="{Binding CompletaAssistentCommand}"
                                 HorizontalAlignment="Right" Padding="18,10"/>
                     </StackPanel>
 
                     <ScrollViewer>
-                        <Grid ColumnDefinitions="*,16,*">
-                            <!-- Franjes -->
-                            <StackPanel Grid.Column="0" Spacing="6">
-                                <TextBlock Text="Franjes horàries" FontWeight="Bold"/>
-                                <ItemsControl ItemsSource="{Binding FranjesAssistent}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:FranjaEditVm">
-                                            <Grid ColumnDefinitions="*,Auto,*,Auto" Margin="0,2">
-                                                <TextBox Grid.Column="0" Text="{Binding HoraInici}" Watermark="08:00"/>
-                                                <TextBlock Grid.Column="1" Text="–" Margin="6,0" VerticalAlignment="Center"/>
-                                                <TextBox Grid.Column="2" Text="{Binding HoraFi}" Watermark="09:00"/>
-                                                <Button Grid.Column="3" Content="✕" Margin="6,0,0,0"
-                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaFranjaAssistentCommand}"
-                                                        CommandParameter="{Binding}"/>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <Button Content="+ Afegeix franja"
-                                        Command="{Binding AfegeixFranjaAssistentCommand}"/>
-                            </StackPanel>
+                        <StackPanel>
+                            <!-- ===== PAS 1: FRANJES I ASSIGNATURES ===== -->
+                            <Grid ColumnDefinitions="*,16,*" IsVisible="{Binding EsPas1}">
+                                <!-- Franjes -->
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <TextBlock Text="Franjes horàries" FontWeight="Bold"/>
+                                    <ItemsControl ItemsSource="{Binding FranjesAssistent}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:FranjaEditVm">
+                                                <Grid ColumnDefinitions="*,Auto,*,Auto" Margin="0,2">
+                                                    <TextBox Grid.Column="0" Text="{Binding HoraInici}" Watermark="08:00"/>
+                                                    <TextBlock Grid.Column="1" Text="–" Margin="6,0" VerticalAlignment="Center"/>
+                                                    <TextBox Grid.Column="2" Text="{Binding HoraFi}" Watermark="09:00"/>
+                                                    <Button Grid.Column="3" Content="✕" Margin="6,0,0,0"
+                                                            Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaFranjaAssistentCommand}"
+                                                            CommandParameter="{Binding}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Content="+ Afegeix franja"
+                                            Command="{Binding AfegeixFranjaAssistentCommand}"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12"
+                                               Text="En afegir una franja, l'hora d'inici s'omple automàticament amb la de fi de l'anterior."/>
+                                </StackPanel>
 
-                            <!-- Assignatures -->
-                            <StackPanel Grid.Column="2" Spacing="6">
-                                <TextBlock Text="Assignatures" FontWeight="Bold"/>
-                                <ItemsControl ItemsSource="{Binding AssignaturesAssistent}">
+                                <!-- Assignatures -->
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <TextBlock Text="Assignatures" FontWeight="Bold"/>
+                                    <ItemsControl ItemsSource="{Binding AssignaturesAssistent}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AssignaturaEditVm">
+                                                <Grid ColumnDefinitions="*,*,Auto" Margin="0,2">
+                                                    <TextBox Grid.Column="0" Text="{Binding Nom}" Watermark="Nom (p.ex. Matemàtiques)"/>
+                                                    <TextBox Grid.Column="1" Text="{Binding Curs}" Watermark="Curs (p.ex. 1r ESO A)" Margin="6,0,0,0"/>
+                                                    <Button Grid.Column="2" Content="✕" Margin="6,0,0,0"
+                                                            Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaAssignaturaAssistentCommand}"
+                                                            CommandParameter="{Binding}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Content="+ Afegeix assignatura"
+                                            Command="{Binding AfegeixAssignaturaAssistentCommand}"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12" Margin="0,8,0,0"
+                                               Text="Al pas següent col·locaràs cada assignatura al dia i la franja corresponents."/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- ===== PAS 2: COL·LOCAR CLASSES PER DIA ===== -->
+                            <StackPanel IsVisible="{Binding EsPas2}" Spacing="8">
+                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                           Text="Tria el dia, l'assignatura i la franja, i afegeix la classe. Repeteix-ho per a cada classe de la setmana (dilluns a divendres)."/>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <ComboBox Grid.Column="0" ItemsSource="{Binding DiesSetmanaOpcions}"
+                                              SelectedItem="{Binding NovaClasseDia}" Width="90">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding, Converter={StaticResource DiaConverter}}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <ComboBox Grid.Column="1" ItemsSource="{Binding AssignaturesConfig}"
+                                              SelectedItem="{Binding NovaClasseAssignatura}" Width="170" Margin="6,0,0,0">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Nom}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <ComboBox Grid.Column="2" ItemsSource="{Binding FranjesConfig}"
+                                              SelectedItem="{Binding NovaClasseFranja}" Width="130" Margin="6,0,0,0">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Etiqueta}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBox Grid.Column="3" Text="{Binding NovaClasseGrup}" Watermark="Grup" Width="70" Margin="6,0,0,0"/>
+                                    <TextBox Grid.Column="4" Text="{Binding NovaClasseAula}" Watermark="Aula" Width="70" Margin="6,0,0,0"/>
+                                    <Button Grid.Column="5" Content="Afegeix classe" Margin="6,0,0,0"
+                                            Command="{Binding AfegeixClasseAssistentCommand}"/>
+                                </Grid>
+
+                                <TextBlock Text="Classes afegides:" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                                <ItemsControl ItemsSource="{Binding ClassesConfig}" MaxHeight="220">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:AssignaturaEditVm">
-                                            <Grid ColumnDefinitions="*,*,Auto" Margin="0,2">
-                                                <TextBox Grid.Column="0" Text="{Binding Nom}" Watermark="Nom (p.ex. Matemàtiques)"/>
-                                                <TextBox Grid.Column="1" Text="{Binding Curs}" Watermark="Curs (p.ex. 1r ESO A)" Margin="6,0,0,0"/>
-                                                <Button Grid.Column="2" Content="✕" Margin="6,0,0,0"
-                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaAssignaturaAssistentCommand}"
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                                <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                                    <Run Text="{Binding DiaSetmana, Converter={StaticResource DiaConverter}}"/>
+                                                    <Run Text=" · "/><Run Text="{Binding Assignatura.Nom}"/>
+                                                    <Run Text=" · "/><Run Text="{Binding Franja.Etiqueta}"/>
+                                                </TextBlock>
+                                                <Button Grid.Column="1" Content="✕"
+                                                        Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaClasseAssistentCommand}"
                                                         CommandParameter="{Binding}"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <Button Content="+ Afegeix assignatura"
-                                        Command="{Binding AfegeixAssignaturaAssistentCommand}"/>
-                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12" Margin="0,8,0,0"
-                                           Text="Després podràs col·locar cada assignatura a la graella des de la pestanya Horari."/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12"
+                                           Text="Pots deixar-ho aquí i afegir més classes més endavant des de Configuració → Edició de l'horari."/>
                             </StackPanel>
-                        </Grid>
+                        </StackPanel>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
@@ -239,6 +474,7 @@
     </Panel>
 
     <Window.Resources>
+        <views:DiaConverter x:Key="DiaConverter"/>
         <!-- Plantilla d'una cel·la de classe a la graella -->
         <DataTemplate x:Key="CellaTemplate" x:DataType="vm:ClasseCellaViewModel">
             <Panel Margin="2">

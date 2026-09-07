@@ -31,6 +31,25 @@
     <PackageReference Include="ClosedXML" Version="0.104.1" />
   </ItemGroup>
 
+  <!--
+    Referències directes per fixar versions corregides de dependències
+    transitives amb vulnerabilitats conegudes (defensa en profunditat):
+      - SQLitePCLRaw.lib.e_sqlite3 3.50.3: conté el binari natiu de SQLite 3.50.3,
+        que corregeix CVE-2025-6965 (GHSA-2m69-gcr7-jv3q). És el paquet que porta
+        la biblioteca nativa; Microsoft.Data.Sqlite l'inicialitza automàticament.
+      - System.IO.Packaging 8.0.1: corregeix DoS CVE-2024-43484 (GHSA-f32c-w444-8ppv)
+    Encara que el vector d'atac real en aquesta app local és baix (només
+    processem dades pròpies), pinem les versions segures per higiene.
+  -->
+  <ItemGroup>
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
+    <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
+    <!-- Tmds.DBus.Protocol només s'usa al backend de Linux (D-Bus). En el nostre
+         objectiu Windows no s'executa mai, però pinem una versió sense la
+         vulnerabilitat GHSA-xrw6-gwf8-vvr9 per no arrossegar-la. -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.95.1" />
+  </ItemGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
   </ItemGroup>

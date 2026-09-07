@@ -12,6 +12,16 @@ public class Configuracio
     public string FormatInformePreferit { get; set; } = "PDF"; // PDF | XLSX | CSV
     public bool AssistentCompletat { get; set; }
     public int VersioHorariActivaId { get; set; }
+
+    // Preferència de tema visual: 'Sistema' | 'Clar' | 'Fosc'.
+    public string Tema { get; set; } = "Sistema";
+
+    // Perfil del professor (informació bàsica, opcional).
+    public string ProfNom { get; set; } = string.Empty;
+    public string ProfCognoms { get; set; } = string.Empty;
+    public string ProfCentre { get; set; } = string.Empty;
+    public string ProfDepartament { get; set; } = string.Empty;
+    public string ProfEmail { get; set; } = string.Empty;
 }
 
 // Assignatura o matèria que imparteix el professor.

@@ -1,6 +1,8 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
 using ProgramacioDocent.Data;
 using ProgramacioDocent.Services;
 using ProgramacioDocent.ViewModels;
@@ -19,7 +21,7 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Inicialitza la base de dades i les dades del calendari.
+            // Inicialitza la base de dades (WAL + migracions + dades inicials).
             var db = new Database();
             db.Inicialitza();
 
@@ -28,9 +30,22 @@ public partial class App : Application
             var calendariService = new CalendariService(db);
             var configService = new ConfigService(db);
             var informeService = new InformeService(db);
+            var backupService = new BackupService(db);
+
+            var config = configService.Carrega();
+
+            // Aplica el tema desat abans de mostrar la finestra (evita el "flaix").
+            AplicaTema(config.Tema);
+
+            // Còpia de seguretat automàtica en arrencar (best-effort, no bloqueja).
+            try { backupService.CreaCopia("arrencada"); } catch { /* ignora */ }
 
             var mainVm = new MainWindowViewModel(
-                horariService, notesService, calendariService, configService, informeService);
+                horariService, notesService, calendariService,
+                configService, informeService, backupService);
+
+            // Quan l'usuari canvia el tema des de Configuració, s'aplica a l'instant.
+            mainVm.TemaCanviat += AplicaTema;
 
             desktop.MainWindow = new MainWindow
             {
@@ -39,5 +54,18 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    // Tradueix la preferència ('Sistema'|'Clar'|'Fosc') a un ThemeVariant d'Avalonia.
+    public static void AplicaTema(string? tema)
+    {
+        var variant = tema switch
+        {
+            "Clar" => ThemeVariant.Light,
+            "Fosc" => ThemeVariant.Dark,
+            _ => ThemeVariant.Default // segueix el sistema
+        };
+        if (Current != null)
+            Current.RequestedThemeVariant = variant;
     }
 }

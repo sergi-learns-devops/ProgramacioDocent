@@ -16,9 +16,15 @@ public class Database
         _connectionString = new SqliteConnectionStringBuilder
         {
             DataSource = ruta,
-            Mode = SqliteOpenMode.ReadWriteCreate
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            // App d'un sol usuari: desactivem el pool de connexions perquè les
+            // operacions a nivell de fitxer (com restaurar una còpia) tinguin
+            // efecte immediat sense connexions residuals que mantinguin el fitxer.
+            Pooling = false
         }.ToString();
     }
+
+    public string RutaFitxer => PathService.GetDatabasePath();
 
     public SqliteConnection ObreConnexio()
     {
@@ -26,90 +32,31 @@ public class Database
         conn.Open();
         using (var pragma = conn.CreateCommand())
         {
+            // foreign_keys s'ha d'activar a cada connexió.
             pragma.CommandText = "PRAGMA foreign_keys = ON;";
             pragma.ExecuteNonQuery();
         }
         return conn;
     }
 
-    // Crea les taules si no existeixen i precarrega el calendari.
+    // Inicialitza la base de dades: activa WAL, aplica migracions i precarrega dades.
     public void Inicialitza()
     {
         using var conn = ObreConnexio();
-        using (var cmd = conn.CreateCommand())
+
+        // WAL (Write-Ahead Logging): millora la robustesa davant tancaments
+        // bruscos i el rendiment de lectura/escriptura simultànies. És un ajust
+        // persistent a la base de dades (n'hi ha prou d'aplicar-lo un cop).
+        using (var wal = conn.CreateCommand())
         {
-            cmd.CommandText = @"
-CREATE TABLE IF NOT EXISTS Configuracio (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    CursEscolar TEXT NOT NULL,
-    DataIniciCurs TEXT NOT NULL,
-    DataFiCurs TEXT NOT NULL,
-    FormatInformePreferit TEXT NOT NULL DEFAULT 'PDF',
-    AssistentCompletat INTEGER NOT NULL DEFAULT 0,
-    VersioHorariActivaId INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS Assignatura (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Nom TEXT NOT NULL,
-    Curs TEXT NOT NULL DEFAULT '',
-    Color TEXT NOT NULL DEFAULT '#4F86C6'
-);
-
-CREATE TABLE IF NOT EXISTS FranjaHorari (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Ordre INTEGER NOT NULL,
-    HoraInici TEXT NOT NULL,
-    HoraFi TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS VersioHorari (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Descripcio TEXT NOT NULL DEFAULT '',
-    DataInici TEXT NOT NULL,
-    DataFi TEXT,
-    Activa INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS ClasseHorari (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    VersioHorariId INTEGER NOT NULL,
-    DiaSetmana INTEGER NOT NULL,
-    FranjaId INTEGER NOT NULL,
-    AssignaturaId INTEGER NOT NULL,
-    Grup TEXT NOT NULL DEFAULT '',
-    Aula TEXT NOT NULL DEFAULT '',
-    FOREIGN KEY (VersioHorariId) REFERENCES VersioHorari(Id) ON DELETE CASCADE,
-    FOREIGN KEY (FranjaId) REFERENCES FranjaHorari(Id) ON DELETE CASCADE,
-    FOREIGN KEY (AssignaturaId) REFERENCES Assignatura(Id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS NotaSetmanal (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ClasseHorariId INTEGER NOT NULL,
-    DataDilluns TEXT NOT NULL,
-    Text TEXT NOT NULL DEFAULT '',
-    DataCreacio TEXT NOT NULL,
-    DataModificacio TEXT NOT NULL,
-    FOREIGN KEY (ClasseHorariId) REFERENCES ClasseHorari(Id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Festiu (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Data TEXT NOT NULL,
-    Nom TEXT NOT NULL,
-    Tipus TEXT NOT NULL DEFAULT 'Festiu'
-);
-
-CREATE INDEX IF NOT EXISTS IX_NotaSetmanal_Classe_Data
-    ON NotaSetmanal(ClasseHorariId, DataDilluns);
-CREATE INDEX IF NOT EXISTS IX_ClasseHorari_Versio
-    ON ClasseHorari(VersioHorariId);
-CREATE UNIQUE INDEX IF NOT EXISTS IX_Festiu_Data ON Festiu(Data);
-";
-            cmd.ExecuteNonQuery();
+            wal.CommandText = "PRAGMA journal_mode = WAL;";
+            wal.ExecuteNonQuery();
         }
 
+        // Aplica les migracions d'esquema pendents (crea/actualitza taules).
+        Migracions.Aplica(conn);
+
+        // Dades inicials.
         AsseguraConfiguracio(conn);
         PrecarregaCalendari(conn);
     }
@@ -151,5 +98,15 @@ VALUES ('2026-2027', '2026-09-08', '2027-06-21', 'PDF', 0, 0);";
             ins.ExecuteNonQuery();
         }
         tx.Commit();
+    }
+
+    // Comprova la integritat de la base de dades. Retorna true si tot és correcte.
+    public bool ComprovaIntegritat()
+    {
+        using var conn = ObreConnexio();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "PRAGMA integrity_check;";
+        var resultat = cmd.ExecuteScalar() as string;
+        return string.Equals(resultat, "ok", StringComparison.OrdinalIgnoreCase);
     }
 }

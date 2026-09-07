@@ -14,11 +14,15 @@ classes, prendre notes setmanals per classe i generar informes per assignatura.
 
 ## 1. Funcionalitats
 
-- **Assistent inicial**: en obrir l'aplicació per primera vegada, el professor
-  defineix les seves franjes horàries i assignatures.
-- **Horari editable**: es pot modificar en qualsevol moment (reducció de jornada,
-  canvi de curs, etc.). L'horari es versiona, de manera que canviar-lo **no
-  esborra les notes ja preses** amb l'horari anterior.
+- **Assistent inicial en dos passos**: en obrir l'aplicació per primera vegada,
+  el professor (1) defineix les seves franjes horàries i assignatures i (2)
+  **col·loca les classes a la graella per dia** (dilluns a divendres). En afegir
+  una franja, l'hora d'inici s'omple **automàticament** amb l'hora de fi de
+  l'anterior.
+- **Horari editable**: es pot modificar en qualsevol moment des de la secció
+  **Configuració** (reducció de jornada, canvi de curs, etc.). L'horari es
+  versiona, de manera que canviar-lo **no esborra les notes ja preses** amb
+  l'horari anterior.
 - **Vista d'horari setmanal** (dilluns–divendres) a la part superior. Es navega
   per setmanes i es marquen els dies festius de Catalunya.
 - **Notes per classe i setmana**: en fer clic sobre una classe de la graella,
@@ -27,6 +31,16 @@ classes, prendre notes setmanals per classe i generar informes per assignatura.
 - **Informes** amb **format elegible** (desplegable): **PDF**, **Excel (XLSX)**
   o **CSV**. Es poden filtrar per **setmana, mes, trimestre o tot el curs** i
   s'ordenen **per assignatura**.
+- **Secció Configuració**:
+  - **Aparença**: mode **clar / fosc / sistema**, commutable i persistent.
+  - **Perfil del professor**: nom, cognoms, centre, departament i correu.
+  - **Edició de l'horari**: afegir/eliminar assignatures, franjes i classes.
+  - **Còpies de seguretat**: es fa una còpia **automàtica en arrencar**; també
+    se'n poden crear manualment i **restaurar-ne** una d'anterior (amb validació
+    d'integritat prèvia).
+- **Robustesa de dades**: base de dades SQLite amb **WAL**, **migracions
+  d'esquema versionades** (per no perdre dades en actualitzar) i **còpies de
+  seguretat** rotatives.
 
 ---
 
