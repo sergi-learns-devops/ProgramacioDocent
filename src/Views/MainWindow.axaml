@@ -122,7 +122,7 @@
                 <TabItem Header="Informes">
                     <StackPanel Margin="24" Spacing="16" MaxWidth="560" HorizontalAlignment="Left">
                         <TextBlock Text="Generació d'informes" FontSize="18" FontWeight="Bold"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
                                    Text="Genera un informe amb totes les notes preses, ordenades per assignatura. Tria el període i el format de sortida."/>
 
                         <StackPanel Spacing="6">
@@ -143,32 +143,39 @@
                                 Click="OnGeneraInforme" HorizontalAlignment="Left" Padding="16,8"/>
 
                         <TextBlock Text="{Binding MissatgeInforme}" TextWrapping="Wrap"
-                                   Foreground="#27AE60"/>
+                                   Foreground="{DynamicResource BrushSuccess}"/>
                     </StackPanel>
                 </TabItem>
 
                 <!-- ====== PESTANYA CALENDARI / INFORMACIÓ ====== -->
                 <TabItem Header="Informació">
-                    <StackPanel Margin="24" Spacing="12" MaxWidth="680" HorizontalAlignment="Left">
-                        <TextBlock Text="Curs 2026-2027 · Catalunya" FontSize="18" FontWeight="Bold"/>
-                        <TextBlock TextWrapping="Wrap"
-                                   Text="Inici de curs: 8 de setembre de 2026. Fi de curs: 21 de juny de 2027."/>
-                        <TextBlock TextWrapping="Wrap" FontWeight="SemiBold" Text="Dies no lectius precarregats:"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="#555"
-                                   Text="• 11/09/2026 Diada Nacional de Catalunya&#x0a;• 12/10/2026 Festa Nacional d'Espanya&#x0a;• 08/12/2026 La Immaculada&#x0a;• Vacances de Nadal: 22/12/2026 – 07/01/2027&#x0a;• Vacances de Setmana Santa: 20/03/2027 – 29/03/2027&#x0a;• 01/05/2027 Festa del Treball"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontStyle="Italic"
-                                   Text="Els dies de lliure disposició els fixa cada centre i es poden afegir manualment. Recorda: en centres privats les dates poden variar lleugerament."/>
-                        <Border Background="#FEF9E7" BorderBrush="#F1C40F" BorderThickness="1"
-                                CornerRadius="6" Padding="12" Margin="0,8,0,0">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Protecció de dades (RGPD)" FontWeight="Bold"/>
-                                <TextBlock TextWrapping="Wrap"
-                                           Text="Les dades es desen únicament en aquest equip. Es recomana no escriure noms complets d'alumnes a les notes; feu servir inicials o codis."/>
-                            </StackPanel>
-                        </Border>
-                        <TextBlock Text="{Binding RutaDades, StringFormat='Ubicació de les dades: {0}'}"
-                                   Foreground="#7F8C8D" FontSize="12" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                    </StackPanel>
+                    <ScrollViewer>
+                        <StackPanel Margin="24" Spacing="12" MaxWidth="680" HorizontalAlignment="Left">
+                            <TextBlock Text="Curs 2026-2027 · Catalunya" FontSize="18" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushTextPrimary}"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextPrimary}"
+                                       Text="Inici de curs: 8 de setembre de 2026. Fi de curs: 21 de juny de 2027."/>
+                            <TextBlock TextWrapping="Wrap" FontWeight="SemiBold" Text="Dies no lectius precarregats:"
+                                       Foreground="{DynamicResource BrushTextPrimary}"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
+                                       Text="• 11/09/2026 Diada Nacional de Catalunya&#x0a;• 12/10/2026 Festa Nacional d'Espanya&#x0a;• 08/12/2026 La Immaculada&#x0a;• Vacances de Nadal: 22/12/2026 – 07/01/2027&#x0a;• Vacances de Setmana Santa: 20/03/2027 – 29/03/2027&#x0a;• 01/05/2027 Festa del Treball"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}" FontStyle="Italic"
+                                       Text="Els dies de lliure disposició els fixa cada centre i es poden afegir manualment. Recorda: en centres privats les dates poden variar lleugerament."/>
+                            <Border Background="{DynamicResource BrushHolidayColumn}"
+                                    BorderBrush="{DynamicResource BrushWarningHoliday}" BorderThickness="1"
+                                    CornerRadius="6" Padding="12" Margin="0,8,0,0">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Protecció de dades (RGPD)" FontWeight="Bold"
+                                               Foreground="{DynamicResource BrushTextPrimary}"/>
+                                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextPrimary}"
+                                               Text="Les dades es desen únicament en aquest equip. Es recomana no escriure noms complets d'alumnes a les notes; feu servir inicials o codis."/>
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Text="{Binding RutaDades, StringFormat='Ubicació de les dades: {0}'}"
+                                       Foreground="{DynamicResource BrushTextSecondary}" FontSize="12"
+                                       TextWrapping="Wrap" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
                 </TabItem>
 
                 <!-- ====== PESTANYA CONFIGURACIÓ ====== -->
@@ -179,13 +186,13 @@
                             <!-- Aparença / Tema -->
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Aparença" FontSize="18" FontWeight="Bold"/>
-                                <TextBlock Text="Mode de color de l'aplicació." Foreground="#7F8C8D"/>
+                                <TextBlock Text="Mode de color de l'aplicació." Foreground="{DynamicResource BrushTextSecondary}"/>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <TextBlock Text="Tema:" VerticalAlignment="Center"/>
                                     <ComboBox ItemsSource="{Binding OpcionsTema}"
                                               SelectedItem="{Binding TemaSeleccionat}" Width="200"/>
                                 </StackPanel>
-                                <TextBlock Foreground="#7F8C8D" FontSize="12"
+                                <TextBlock Foreground="{DynamicResource BrushTextSecondary}" FontSize="12"
                                            Text="'Sistema' segueix la configuració de Windows. El canvi s'aplica immediatament."/>
                             </StackPanel>
 
@@ -195,7 +202,7 @@
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Perfil del professor" FontSize="18" FontWeight="Bold"/>
                                 <TextBlock Text="Informació bàsica (opcional). Es podrà mostrar als informes en el futur."
-                                           Foreground="#7F8C8D" TextWrapping="Wrap"/>
+                                           Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap"/>
                                 <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Nom" VerticalAlignment="Center" Margin="0,4"/>
                                     <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding ProfNom}" Watermark="Nom" Margin="0,4"/>
@@ -210,7 +217,7 @@
                                 </Grid>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <Button Content="Desa el perfil" Classes="accent" Command="{Binding DesaPerfilCommand}"/>
-                                    <TextBlock Text="{Binding MissatgePerfil}" Foreground="#27AE60" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding MissatgePerfil}" Foreground="{DynamicResource BrushSuccess}" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -219,7 +226,7 @@
                             <!-- Edició de l'horari -->
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Edició de l'horari" FontSize="18" FontWeight="Bold"/>
-                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
                                            Text="Afegeix assignatures i franjes, i col·loca classes a la graella. Els canvis es reflecteixen a la pestanya Horari."/>
 
                                 <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto">
@@ -283,7 +290,7 @@
                                     <TextBox Grid.Column="4" Text="{Binding NovaClasseAula}" Watermark="Aula" Width="80" Margin="6,0,0,0"/>
                                     <Button Grid.Column="5" Content="Afegeix" Command="{Binding AfegeixClasseConfigCommand}" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Foreground="#7F8C8D" FontSize="12"
+                                <TextBlock Foreground="{DynamicResource BrushTextSecondary}" FontSize="12"
                                            Text="(El desplegable de dia mostra 1=Dilluns … 5=Divendres)"/>
 
                                 <!-- Llista de classes existents -->
@@ -304,7 +311,7 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <TextBlock Text="{Binding MissatgeHorari}" Foreground="#27AE60"/>
+                                <TextBlock Text="{Binding MissatgeHorari}" Foreground="{DynamicResource BrushSuccess}"/>
                             </StackPanel>
 
                             <Separator/>
@@ -312,7 +319,7 @@
                             <!-- Còpies de seguretat -->
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Còpies de seguretat" FontSize="18" FontWeight="Bold"/>
-                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
                                            Text="Es fa una còpia automàtica en obrir l'aplicació. També pots crear-ne una manualment o restaurar-ne una d'anterior."/>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <Button Content="Crea una còpia ara" Command="{Binding CreaCopiaSeguretatCommand}"/>
@@ -326,9 +333,9 @@
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
-                                <TextBlock Text="{Binding MissatgeBackup}" Foreground="#2980B9" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding MissatgeBackup}" Foreground="{DynamicResource BrushAccent}" TextWrapping="Wrap"/>
                                 <TextBlock Text="{Binding RutaDades, StringFormat='Ubicació de les dades: {0}'}"
-                                           Foreground="#7F8C8D" FontSize="12" TextWrapping="Wrap"/>
+                                           Foreground="{DynamicResource BrushTextSecondary}" FontSize="12" TextWrapping="Wrap"/>
                             </StackPanel>
 
                             <Separator/>
@@ -337,8 +344,8 @@
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Actualitzacions" FontSize="18" FontWeight="Bold"/>
                                 <TextBlock Text="{Binding VersioActualApp, StringFormat='Versió instal·lada: {0}'}"
-                                           Foreground="#7F8C8D"/>
-                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                           Foreground="{DynamicResource BrushTextSecondary}"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
                                            Text="Comprova si hi ha una versió nova a GitHub. Aquesta és l'única funció que fa servir Internet, i només quan hi fas clic."/>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <Button Content="Comprova si hi ha actualitzacions"
@@ -348,11 +355,11 @@
                                             Command="{Binding BaixaActualitzacioCommand}"
                                             IsVisible="{Binding HiHaActualitzacio}"/>
                                 </StackPanel>
-                                <TextBlock Text="{Binding MissatgeActualitzacio}" TextWrapping="Wrap" Foreground="#2980B9"/>
+                                <TextBlock Text="{Binding MissatgeActualitzacio}" TextWrapping="Wrap" Foreground="{DynamicResource BrushAccent}"/>
 
                                 <!-- Novetats de la versió nova -->
                                 <Border IsVisible="{Binding HiHaActualitzacio}"
-                                        Background="#F4F6F7" CornerRadius="6" Padding="12" MaxHeight="160">
+                                        Background="{DynamicResource BrushSurfaceAlt}" CornerRadius="6" Padding="12" MaxHeight="160">
                                     <ScrollViewer>
                                         <TextBlock Text="{Binding NotesActualitzacio}" TextWrapping="Wrap" FontSize="12"/>
                                     </ScrollViewer>
@@ -360,11 +367,14 @@
 
                                 <!-- Instruccions d'actualització -->
                                 <Border IsVisible="{Binding HiHaActualitzacio}"
-                                        Background="#EAF7EE" BorderBrush="#27AE60" BorderThickness="1"
+                                        Background="{DynamicResource BrushSurfaceAlt}"
+                                        BorderBrush="{DynamicResource BrushSuccess}" BorderThickness="1"
                                         CornerRadius="6" Padding="12">
                                     <StackPanel Spacing="4">
-                                        <TextBlock Text="Com actualitzar (sense perdre dades)" FontWeight="Bold"/>
+                                        <TextBlock Text="Com actualitzar (sense perdre dades)" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushTextPrimary}"/>
                                         <TextBlock TextWrapping="Wrap" FontSize="12"
+                                                   Foreground="{DynamicResource BrushTextPrimary}"
                                                    Text="1. Fes clic a 'Baixa la nova versió' i desa el ZIP.&#x0a;2. Tanca l'aplicació.&#x0a;3. Descomprimeix el ZIP A SOBRE de la carpeta actual (substituint els fitxers).&#x0a;4. Torna a obrir 'ProgramacioDocent.exe'.&#x0a;&#x0a;Les teves dades (horari, notes, perfil) es conserven perquè es desen a la carpeta 'dades', que no es toca. A més, es fa una còpia de seguretat automàtica en arrencar."/>
                                     </StackPanel>
                                 </Border>
@@ -384,8 +394,8 @@
                 <DockPanel LastChildFill="True">
                     <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
                         <TextBlock Text="{Binding TitolNota}" FontSize="18" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding SubtitolNota}" Foreground="#7F8C8D"/>
-                        <TextBlock Foreground="#B9770E" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                        <TextBlock Text="{Binding SubtitolNota}" Foreground="{DynamicResource BrushTextSecondary}"/>
+                        <TextBlock Foreground="{DynamicResource BrushWarningHoliday}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
                                    Text="Protecció de dades: evita escriure noms complets d'alumnes; fes servir inicials o codis."/>
                     </StackPanel>
 
@@ -410,7 +420,7 @@
                 <DockPanel LastChildFill="True">
                     <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,12">
                         <TextBlock Text="Benvingut/da a Programació Docent" FontSize="20" FontWeight="Bold"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
                                    Text="Defineix el teu horari inicial. Podràs editar-lo més endavant (reducció de jornada, canvis de curs, etc.)."/>
                         <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
                             <Border Background="#2C3E50" CornerRadius="10" Padding="8,2" IsVisible="{Binding EsPas1}">
@@ -457,7 +467,7 @@
                                     </ItemsControl>
                                     <Button Content="+ Afegeix franja"
                                             Command="{Binding AfegeixFranjaAssistentCommand}"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12"
+                                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}" FontSize="12"
                                                Text="En afegir una franja, l'hora d'inici s'omple automàticament amb la de fi de l'anterior."/>
                                 </StackPanel>
 
@@ -479,14 +489,14 @@
                                     </ItemsControl>
                                     <Button Content="+ Afegeix assignatura"
                                             Command="{Binding AfegeixAssignaturaAssistentCommand}"/>
-                                    <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12" Margin="0,8,0,0"
+                                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}" FontSize="12" Margin="0,8,0,0"
                                                Text="Al pas següent col·locaràs cada assignatura al dia i la franja corresponents."/>
                                 </StackPanel>
                             </Grid>
 
                             <!-- ===== PAS 2: COL·LOCAR CLASSES PER DIA ===== -->
                             <StackPanel IsVisible="{Binding EsPas2}" Spacing="8">
-                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D"
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
                                            Text="Tria el dia, l'assignatura i la franja, i afegeix la classe. Repeteix-ho per a cada classe de la setmana (dilluns a divendres)."/>
                                 <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                                     <ComboBox Grid.Column="0" ItemsSource="{Binding DiesSetmanaOpcions}"
@@ -530,7 +540,7 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <TextBlock TextWrapping="Wrap" Foreground="#7F8C8D" FontSize="12"
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}" FontSize="12"
                                            Text="Pots deixar-ho aquí i afegir més classes més endavant des de Configuració → Edició de l'horari."/>
                             </StackPanel>
                         </StackPanel>
