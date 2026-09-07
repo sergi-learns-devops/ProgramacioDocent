@@ -71,12 +71,44 @@ Consideracions que **no** es poden resoldre només des del codi:
 
 ---
 
-## 4. Compilació (per a desenvolupadors)
+## 4. Com obtenir l'executable (.exe)
 
-Requisits: **.NET 8 SDK**.
+Hi ha dues maneres d'obtenir l'aplicació. **La recomanada és la descàrrega des de
+Releases**, perquè no requereix instal·lar res al teu equip.
+
+### 4.1. Descàrrega des de Releases (recomanat) ✅
+
+L'executable es compila automàticament a GitHub (GitHub Actions) sobre un equip
+Windows i es publica a la pàgina de **Releases** del repositori. Aquesta és la via
+ideal, ja que **ni el professor ni tu heu de tenir instal·lat el .NET SDK**.
+
+1. Ves a la pestanya **Releases** del repositori a GitHub.
+2. Descarrega `ProgramacioDocent-win-x64.zip` de la darrera versió.
+3. Descomprimeix-lo i executa `ProgramacioDocent.exe`.
+
+Per **publicar una versió nova**, crea un tag i puja'l:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+El workflow `.github/workflows/release.yml` compilarà el `.exe` i adjuntarà el
+ZIP a la Release automàticament. També es pot llançar manualment des de la
+pestanya **Actions** (opció *Run workflow*), que genera un artefacte descarregable
+sense crear cap Release.
+
+### 4.2. Compilació local (només per a desenvolupadors amb .NET 8 SDK)
+
+> ⚠️ **Important**: el script `publish-portable.ps1` **necessita el .NET 8 SDK
+> instal·lat**. Si el fas doble clic no s'executarà (Windows obre els `.ps1` a
+> l'editor per seguretat), i si el `dotnet` no hi és, veuràs l'error
+> *"La compilació ha fallat"*. Per això, per als equips capats es recomana la via
+> 4.1 (Releases), que no depèn de tenir res instal·lat.
+
+Requisits: **.NET 8 SDK**. Des de l'arrel del projecte, en una terminal:
 
 ```powershell
-# Des de l'arrel del projecte, a Windows:
 pwsh ./publish-portable.ps1
 ```
 
@@ -85,7 +117,7 @@ Genera:
 - `publish/ProgramacioDocent/` — carpeta portable amb `ProgramacioDocent.exe`.
 - `publish/ProgramacioDocent-win-x64.zip` — el mateix, empaquetat per distribuir.
 
-El script fa servir intencionadament:
+Els paràmetres de compilació (tant al script com al workflow) s'han triat a posta:
 
 - `--self-contained true` → no cal .NET a l'equip destí.
 - `-p:PublishSingleFile=false` → les DLL natives NO s'extreuen a `%TEMP%`

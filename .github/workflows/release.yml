@@ -1,0 +1,115 @@
+name: Build i Release (Windows portable)
+
+# Genera l'executable portable de Windows (win-x64) i el publica com a
+# artefacte descarregable i, si s'ha creat un tag de versió, com a Release.
+#
+# COM PUBLICAR UNA NOVA VERSIÓ:
+#   1. Fes commit dels canvis a 'main'.
+#   2. Crea un tag de versió i puja'l:
+#        git tag v1.0.0
+#        git push origin v1.0.0
+#   3. Aquest workflow compilarà el .exe i penjarà el ZIP a la pàgina de Releases.
+#
+# També es pot llançar manualment des de la pestanya "Actions" (workflow_dispatch),
+# cosa que genera l'artefacte descarregable però NO una Release.
+
+on:
+  push:
+    tags:
+      - 'v*'          # p. ex. v1.0.0, v1.2.3
+  workflow_dispatch:   # execució manual des de la interfície de GitHub
+
+permissions:
+  contents: write      # necessari per crear la Release i pujar-hi fitxers
+
+jobs:
+  build:
+    runs-on: windows-latest   # runner de Windows amb .NET disponible
+
+    steps:
+      - name: Descarrega el codi
+        uses: actions/checkout@v4
+
+      - name: Instal·la el .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaura les dependències
+        run: dotnet restore src/ProgramacioDocent.csproj
+
+      - name: Determina la versió
+        id: versio
+        shell: pwsh
+        run: |
+          if ("${{ github.ref }}" -like "refs/tags/v*") {
+            $v = "${{ github.ref_name }}".TrimStart("v")
+          } else {
+            $v = "0.0.0-dev+${{ github.run_number }}"
+          }
+          echo "numero=$v" >> $env:GITHUB_OUTPUT
+          echo "Versió: $v"
+
+      - name: Compila el portable (win-x64, autocontingut)
+        shell: pwsh
+        run: |
+          dotnet publish src/ProgramacioDocent.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=false `
+            -p:PublishTrimmed=false `
+            -p:PublishReadyToRun=true `
+            -p:DebugType=none `
+            -p:DebugSymbols=false `
+            -p:Version=${{ steps.versio.outputs.numero }} `
+            -o publish/ProgramacioDocent
+
+      - name: Afegeix el fitxer d'instruccions
+        shell: pwsh
+        run: |
+          @"
+          PROGRAMACIÓ DOCENT — Aplicació portable
+
+          1. Copia TOTA aquesta carpeta a l'equip (Escriptori o unitat USB).
+          2. Executa 'ProgramacioDocent.exe'.
+          3. No cal instal·lar res. Les dades es desen a la subcarpeta 'dades'
+             (o a %LOCALAPPDATA%\ProgramacioDocent si la carpeta és de només lectura).
+
+          Si Windows mostra un avís de SmartScreen: 'Més informació' > 'Executa igualment'.
+          Si l'antivirus el bloqueja, l'equip d'informàtica del centre ha d'afegir-lo a la
+          llista blanca (l'aplicació no fa cap connexió a Internet).
+          "@ | Out-File -FilePath publish/ProgramacioDocent/LLEGEIX-ME.txt -Encoding utf8
+
+      - name: Empaqueta en ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path publish/ProgramacioDocent/* `
+            -DestinationPath publish/ProgramacioDocent-win-x64.zip -Force
+
+      - name: Puja l'artefacte descarregable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProgramacioDocent-win-x64
+          path: publish/ProgramacioDocent-win-x64.zip
+          retention-days: 30
+
+      - name: Crea la Release i hi adjunta el ZIP
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Programació Docent ${{ github.ref_name }}
+          body: |
+            ## Programació Docent ${{ github.ref_name }}
+
+            Aplicació portable per a Windows 64 bits. **No cal instal·lar res.**
+
+            ### Instal·lació
+            1. Descarrega `ProgramacioDocent-win-x64.zip` (a sota, a "Assets").
+            2. Descomprimeix-lo en una carpeta (Escriptori o unitat USB).
+            3. Executa `ProgramacioDocent.exe`.
+
+            > Si Windows mostra un avís de SmartScreen, fes clic a
+            > **Més informació → Executa igualment**. L'aplicació no es connecta
+            > a Internet i totes les dades queden a l'equip.
+          files: publish/ProgramacioDocent-win-x64.zip
