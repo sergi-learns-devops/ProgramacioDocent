@@ -34,15 +34,7 @@ public class Assignatura
 }
 
 // Franja horària definida pel professor (p.ex. 08:00–09:00).
-public class FranjaHorari
-{
-    public int Id { get; set; }
-    public int Ordre { get; set; }
-    public TimeOnly HoraInici { get; set; }
-    public TimeOnly HoraFi { get; set; }
-
-    public string Etiqueta => $"{HoraInici:HH\\:mm} - {HoraFi:HH\\:mm}";
-}
+// (Model conservat només per compatibilitat; ja no s'utilitza al nou disseny.)
 
 // Versió de l'horari. Permet editar l'horari en el futur (reducció de jornada,
 // canvi de curs, etc.) sense trencar les notes ja preses amb la versió anterior.
@@ -55,20 +47,23 @@ public class VersioHorari
     public bool Activa { get; set; }
 }
 
-// Una classe concreta dins la graella: dia + franja + assignatura.
+// Una classe concreta dins la graella: dia + hora + assignatura.
 public class ClasseHorari
 {
     public int Id { get; set; }
     public int VersioHorariId { get; set; }
     public int DiaSetmana { get; set; } // 1 = dilluns ... 5 = divendres
-    public int FranjaId { get; set; }
+    public TimeOnly HoraInici { get; set; }
+    public TimeOnly HoraFi { get; set; }
     public int AssignaturaId { get; set; }
     public string Grup { get; set; } = string.Empty;
     public string Aula { get; set; } = string.Empty;
 
-    // Camps desnormalitzats per a la UI (no es guarden a la BD).
-    public FranjaHorari? Franja { get; set; }
+    // Camp desnormalitzat per a la UI (no es guarda a la BD).
     public Assignatura? Assignatura { get; set; }
+
+    // Etiqueta de la franja horària d'aquesta classe.
+    public string Etiqueta => $"{HoraInici:HH\\:mm} - {HoraFi:HH\\:mm}";
 }
 
 // Nota de text lliure associada a una classe i a una setmana concreta.

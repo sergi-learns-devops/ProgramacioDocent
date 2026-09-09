@@ -30,7 +30,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private Configuracio _configuracio;
     private int _versioActiva;
-    private List<FranjaHorari> _franjes = new();
     private List<ClasseHorari> _classes = new();
 
     // Setmana actualment visible (dilluns).
@@ -49,9 +48,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private ClasseHorari? _classeSeleccionada;
     private DateTime _diaSeleccionat;
 
-    // Graella: files (franjes) amb 5 columnes (dilluns-divendres).
-    public ObservableCollection<FilaHorariViewModel> FilesHorari { get; } = new();
-
     // Informes.
     public ObservableCollection<string> FormatsInforme { get; } = new() { "PDF", "XLSX", "CSV" };
     public ObservableCollection<string> PeriodesInforme { get; } = new()
@@ -61,7 +57,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _missatgeInforme = string.Empty;
 
     // Assistent: dades introduïdes.
-    public ObservableCollection<FranjaEditVm> FranjesAssistent { get; } = new();
     public ObservableCollection<AssignaturaEditVm> AssignaturesAssistent { get; } = new();
 
     public string RutaDades => PathService.GetDataDirectory();
@@ -106,57 +101,18 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         RefrescaCopies();
+        RefrescaDiesLliure();
     }
 
-    // ---------------- Assistent inicial ----------------
-
-    // Pas de l'assistent: 1 = definir franjes i assignatures; 2 = col·locar classes.
-    [ObservableProperty] private int _passAssistent = 1;
-    public bool EsPas1 => PassAssistent == 1;
-    public bool EsPas2 => PassAssistent == 2;
-    partial void OnPassAssistentChanged(int value)
-    {
-        OnPropertyChanged(nameof(EsPas1));
-        OnPropertyChanged(nameof(EsPas2));
-    }
+    // ---------------- Assistent inicial (només assignatures) ----------------
 
     private void IniciaAssistent()
     {
         MostraAssistent = true;
-        PassAssistent = 1;
-        // Franjes per defecte proposades (el professor les pot editar/eliminar).
-        FranjesAssistent.Clear();
-        var predef = new[]
-        {
-            ("08:00", "09:00"), ("09:00", "10:00"), ("10:00", "11:00"),
-            ("11:30", "12:30"), ("12:30", "13:30"), ("15:00", "16:00"), ("16:00", "17:00")
-        };
-        foreach (var (i, f) in predef)
-            FranjesAssistent.Add(new FranjaEditVm { HoraInici = i, HoraFi = f });
-
         AssignaturesAssistent.Clear();
         AssignaturesAssistent.Add(new AssignaturaEditVm { Nom = "", Curs = "", Color = "#4F86C6" });
+        MissatgeAssistent = string.Empty;
     }
-
-    [RelayCommand]
-    private void AfegeixFranjaAssistent()
-    {
-        // Hora dinàmica: la nova franja comença quan acaba l'última definida,
-        // i proposa una durada d'una hora.
-        string iniciNou = "09:00";
-        string fiNou = "10:00";
-        var ultima = FranjesAssistent.LastOrDefault();
-        if (ultima != null && TimeOnly.TryParse(ultima.HoraFi, out var fiUltima))
-        {
-            iniciNou = fiUltima.ToString("HH:mm");
-            fiNou = fiUltima.AddHours(1).ToString("HH:mm");
-        }
-        FranjesAssistent.Add(new FranjaEditVm { HoraInici = iniciNou, HoraFi = fiNou });
-    }
-
-    [RelayCommand]
-    private void EliminaFranjaAssistent(FranjaEditVm f)
-        => FranjesAssistent.Remove(f);
 
     [RelayCommand]
     private void AfegeixAssignaturaAssistent()
@@ -170,87 +126,27 @@ public partial class MainWindowViewModel : ViewModelBase
     private void EliminaAssignaturaAssistent(AssignaturaEditVm a)
         => AssignaturesAssistent.Remove(a);
 
-    // Pas 1 -> Pas 2: valida i desa franjes + assignatures + versió, i prepara
-    // les llistes per col·locar classes a la graella (per dia).
+    // Completa l'assistent: desa les assignatures, crea la versió d'horari inicial
+    // i mostra el calendari (buit) perquè el professor hi afegeixi les classes.
     [RelayCommand]
-    private void ContinuaAssistent()
+    private void CompletaAssistent()
     {
-        var franjesValides = new List<(TimeOnly, TimeOnly)>();
-        foreach (var f in FranjesAssistent)
-        {
-            if (TimeOnly.TryParse(f.HoraInici, out var hi) && TimeOnly.TryParse(f.HoraFi, out var hf) && hf > hi)
-                franjesValides.Add((hi, hf));
-        }
         var assignaturesValides = AssignaturesAssistent
             .Where(a => !string.IsNullOrWhiteSpace(a.Nom)).ToList();
 
-        if (franjesValides.Count == 0 || assignaturesValides.Count == 0)
+        if (assignaturesValides.Count == 0)
         {
-            MissatgeAssistent = "Cal definir com a mínim una franja horària i una assignatura.";
+            MissatgeAssistent = "Cal definir com a mínim una assignatura.";
             return;
         }
 
-        // Desa franjes (ordenades per hora d'inici).
-        int ordre = 1;
-        foreach (var (hi, hf) in franjesValides.OrderBy(x => x.Item1))
-            _horari.AfegeixFranja(new FranjaHorari { Ordre = ordre++, HoraInici = hi, HoraFi = hf });
-
-        // Desa assignatures.
         foreach (var a in assignaturesValides)
-            _horari.AfegeixAssignatura(new Assignatura { Nom = a.Nom, Curs = a.Curs, Color = a.Color });
+            _horari.AfegeixAssignatura(new Assignatura { Nom = a.Nom.Trim(), Curs = a.Curs?.Trim() ?? "", Color = a.Color });
 
-        // Crea i activa la versió d'horari inicial.
         var versio = _horari.CreaVersio("Horari inicial del curs", _configuracio.DataIniciCurs);
         _horari.ActivaVersio(versio, _configuracio.DataIniciCurs);
         _versioActiva = versio;
         _configuracio.VersioHorariActivaId = versio;
-
-        // Carrega les franjes i assignatures desades per poder col·locar classes.
-        _franjes = _horari.ObteFranjes();
-        RefrescaConfigHorari();
-        NovaClasseAssignatura = AssignaturesConfig.FirstOrDefault();
-        NovaClasseFranja = FranjesConfig.FirstOrDefault();
-
-        MissatgeAssistent = string.Empty;
-        PassAssistent = 2;
-    }
-
-    // Afegeix una classe a la graella durant l'assistent (pas 2).
-    [RelayCommand]
-    private void AfegeixClasseAssistent()
-    {
-        if (NovaClasseAssignatura == null || NovaClasseFranja == null)
-        {
-            MissatgeAssistent = "Selecciona dia, assignatura i franja.";
-            return;
-        }
-        _horari.AfegeixClasse(new ClasseHorari
-        {
-            VersioHorariId = _versioActiva,
-            DiaSetmana = NovaClasseDia,
-            FranjaId = NovaClasseFranja.Id,
-            AssignaturaId = NovaClasseAssignatura.Id,
-            Grup = NovaClasseGrup?.Trim() ?? "",
-            Aula = NovaClasseAula?.Trim() ?? ""
-        });
-        NovaClasseGrup = string.Empty;
-        NovaClasseAula = string.Empty;
-        RefrescaConfigHorari();
-        MissatgeAssistent = $"Classe afegida: {NomDia(NovaClasseDia)} · {NovaClasseAssignatura.Nom}";
-    }
-
-    [RelayCommand]
-    private void EliminaClasseAssistent(ClasseHorari classe)
-    {
-        if (classe == null) return;
-        _horari.EliminaClasse(classe.Id);
-        RefrescaConfigHorari();
-    }
-
-    // Pas 2 -> finalitza: marca l'assistent com a completat i mostra la graella.
-    [RelayCommand]
-    private void CompletaAssistent()
-    {
         _configuracio.AssistentCompletat = true;
         _config.Desa(_configuracio);
 
@@ -269,38 +165,13 @@ public partial class MainWindowViewModel : ViewModelBase
         _versioActiva = _horari.VersioVigent(SetmanaActual);
         if (_versioActiva == 0)
             _versioActiva = _configuracio.VersioHorariActivaId;
-        _franjes = _horari.ObteFranjes();
         _classes = _horari.ObteClasses(_versioActiva);
         RefrescaConfigHorari();
     }
 
-    // Reconstrueix la graella per a la setmana visible.
+    // Reconstrueix les vistes per a la setmana visible.
     private void RefrescaGraella()
     {
-        FilesHorari.Clear();
-
-        foreach (var franja in _franjes.OrderBy(f => f.Ordre))
-        {
-            var fila = new FilaHorariViewModel(franja.Etiqueta);
-            for (int dia = 1; dia <= 5; dia++)
-            {
-                var classe = _classes.FirstOrDefault(c => c.DiaSetmana == dia && c.FranjaId == franja.Id);
-                if (classe != null)
-                {
-                    var cella = new ClasseCellaViewModel(classe);
-                    var diaData = SetmanaActual.AddDays(dia - 1);
-                    var nota = _notes.ObteNota(classe.Id, SetmanaActual);
-                    cella.TeNota = nota != null && !string.IsNullOrWhiteSpace(nota.Text);
-                    fila.Celles.Add(cella);
-                }
-                else
-                {
-                    fila.Celles.Add(null);
-                }
-            }
-            FilesHorari.Add(fila);
-        }
-
         RefrescaCapceleraDies();
         RefrescaCalendari();
         ActualitzaTitolSetmana();
@@ -317,6 +188,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private const int MinutsPerFila = 30;
     private int _minutBase; // minut del dia on comença la graella (p. ex. 08:00 -> 480)
+    public int MinutBase => _minutBase;
 
     // Calcula la posició de cada classe segons la seva hora, per a la vista calendari.
     private void RefrescaCalendari()
@@ -325,15 +197,23 @@ public partial class MainWindowViewModel : ViewModelBase
         ColumnesDia.Clear();
         EtiquetesHora.Clear();
 
-        // Rang horari: de l'inici més matiner al final més tardà de totes les franjes.
-        if (_franjes.Count == 0)
+        // Rang horari: de l'inici més matiner al final més tardà de les classes.
+        // Si no hi ha classes, mostrem un rang per defecte (08:00–18:00) perquè
+        // el professor pugui clicar per crear la primera classe.
+        int minInici, maxFi;
+        if (_classes.Count == 0)
         {
-            NombreFiles = 0;
-            return;
+            minInici = 8 * 60;
+            maxFi = 18 * 60;
         }
-
-        int minInici = _franjes.Min(f => f.HoraInici.Hour * 60 + f.HoraInici.Minute);
-        int maxFi = _franjes.Max(f => f.HoraFi.Hour * 60 + f.HoraFi.Minute);
+        else
+        {
+            minInici = _classes.Min(c => c.HoraInici.Hour * 60 + c.HoraInici.Minute);
+            maxFi = _classes.Max(c => c.HoraFi.Hour * 60 + c.HoraFi.Minute);
+            // Marge perquè sempre hi hagi almenys una fila buida a sota per clicar.
+            minInici = Math.Min(minInici, 8 * 60);
+            maxFi = Math.Max(maxFi, minInici + 60);
+        }
 
         // Arrodonim l'inici cap avall a la mitja hora i el final cap amunt.
         _minutBase = (minInici / MinutsPerFila) * MinutsPerFila;
@@ -362,9 +242,8 @@ public partial class MainWindowViewModel : ViewModelBase
         // Blocs de classe posicionats per hora d'inici i durada.
         foreach (var classe in _classes)
         {
-            if (classe.Franja == null) continue;
-            int ini = classe.Franja.HoraInici.Hour * 60 + classe.Franja.HoraInici.Minute;
-            int fi = classe.Franja.HoraFi.Hour * 60 + classe.Franja.HoraFi.Minute;
+            int ini = classe.HoraInici.Hour * 60 + classe.HoraInici.Minute;
+            int fi = classe.HoraFi.Hour * 60 + classe.HoraFi.Minute;
 
             int fila = (ini - _minutBase) / MinutsPerFila;
             int span = Math.Max(1, (fi - ini) / MinutsPerFila);
@@ -450,9 +329,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // ---------------- Editor de notes ----------------
 
-    // S'invoca en fer clic sobre una classe de la graella (vista de taula).
-    public void ObreNota(ClasseCellaViewModel cella) => ObreNotaClasse(cella.Classe);
-
     // S'invoca en fer clic sobre un bloc de la vista calendari.
     public void ObreNota(BlocCalendariVm bloc) => ObreNotaClasse(bloc.Classe);
 
@@ -468,7 +344,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         TitolNota = classe.Assignatura?.Nom ?? "Classe";
         SubtitolNota =
-            $"{_diaSeleccionat:dddd d 'de' MMMM} · {classe.Franja?.Etiqueta}" +
+            $"{_diaSeleccionat:dddd d 'de' MMMM} · {classe.Etiqueta}" +
             (string.IsNullOrWhiteSpace(classe.Assignatura?.Curs) ? "" : $" · {classe.Assignatura!.Curs}");
 
         // Avís si el dia és festiu.
@@ -639,24 +515,13 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    // ---- Edició d'horari ----
+    // ---- Gestió d'assignatures (a Configuració) ----
     public ObservableCollection<Assignatura> AssignaturesConfig { get; } = new();
-    public ObservableCollection<FranjaHorari> FranjesConfig { get; } = new();
     public ObservableCollection<ClasseHorari> ClassesConfig { get; } = new();
+    public ObservableCollection<int> DiesSetmanaOpcions { get; } = new() { 1, 2, 3, 4, 5 };
 
-    // Camps per afegir una assignatura nova.
     [ObservableProperty] private string _novaAssignaturaNom = string.Empty;
     [ObservableProperty] private string _novaAssignaturaCurs = string.Empty;
-    // Camps per afegir una franja nova.
-    [ObservableProperty] private string _novaFranjaInici = "08:00";
-    [ObservableProperty] private string _novaFranjaFi = "09:00";
-    // Camps per afegir una classe a la graella.
-    public ObservableCollection<int> DiesSetmanaOpcions { get; } = new() { 1, 2, 3, 4, 5 };
-    [ObservableProperty] private int _novaClasseDia = 1;
-    [ObservableProperty] private Assignatura? _novaClasseAssignatura;
-    [ObservableProperty] private FranjaHorari? _novaClasseFranja;
-    [ObservableProperty] private string _novaClasseGrup = string.Empty;
-    [ObservableProperty] private string _novaClasseAula = string.Empty;
     [ObservableProperty] private string _missatgeHorari = string.Empty;
 
     private static readonly string[] NomsDies =
@@ -667,8 +532,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         AssignaturesConfig.Clear();
         foreach (var a in _horari.ObteAssignatures()) AssignaturesConfig.Add(a);
-        FranjesConfig.Clear();
-        foreach (var f in _horari.ObteFranjes()) FranjesConfig.Add(f);
         ClassesConfig.Clear();
         foreach (var c in _horari.ObteClasses(_versioActiva)) ClassesConfig.Add(c);
     }
@@ -687,44 +550,6 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void AfegeixFranjaConfig()
-    {
-        if (!TimeOnly.TryParse(NovaFranjaInici, out var hi) || !TimeOnly.TryParse(NovaFranjaFi, out var hf) || hf <= hi)
-        {
-            MissatgeHorari = "Franja no vàlida (hora d'inici < hora de fi, format HH:mm).";
-            return;
-        }
-        var ordre = FranjesConfig.Count + 1;
-        _horari.AfegeixFranja(new FranjaHorari { Ordre = ordre, HoraInici = hi, HoraFi = hf });
-        RefrescaConfigHorari();
-        MissatgeHorari = "Franja afegida.";
-    }
-
-    [RelayCommand]
-    private void AfegeixClasseConfig()
-    {
-        if (NovaClasseAssignatura == null || NovaClasseFranja == null)
-        {
-            MissatgeHorari = "Selecciona assignatura i franja.";
-            return;
-        }
-        _horari.AfegeixClasse(new ClasseHorari
-        {
-            VersioHorariId = _versioActiva,
-            DiaSetmana = NovaClasseDia,
-            FranjaId = NovaClasseFranja.Id,
-            AssignaturaId = NovaClasseAssignatura.Id,
-            Grup = NovaClasseGrup?.Trim() ?? "",
-            Aula = NovaClasseAula?.Trim() ?? ""
-        });
-        NovaClasseGrup = string.Empty;
-        NovaClasseAula = string.Empty;
-        RefrescaConfigHorari();
-        RefrescaGraella();
-        MissatgeHorari = "Classe afegida a l'horari.";
-    }
-
-    [RelayCommand]
     private void EliminaClasseConfig(ClasseHorari classe)
     {
         if (classe == null) return;
@@ -732,6 +557,147 @@ public partial class MainWindowViewModel : ViewModelBase
         RefrescaConfigHorari();
         RefrescaGraella();
         MissatgeHorari = "Classe eliminada.";
+    }
+
+    // ---- Pop-up de classe (crear/editar en fer clic al calendari) ----
+    [ObservableProperty] private bool _mostraPopupClasse;
+    [ObservableProperty] private bool _popupEsEdicio;
+    [ObservableProperty] private int _popupDia = 1;
+    [ObservableProperty] private string _popupHoraInici = "09:00";
+    [ObservableProperty] private string _popupHoraFi = "10:00";
+    [ObservableProperty] private Assignatura? _popupAssignatura;
+    [ObservableProperty] private string _popupGrup = string.Empty;
+    [ObservableProperty] private string _popupAula = string.Empty;
+    [ObservableProperty] private string _popupTitol = string.Empty;
+    [ObservableProperty] private string _missatgePopup = string.Empty;
+    public ObservableCollection<Assignatura> PopupAssignatures { get; } = new();
+    private int _popupClasseId;
+
+    private void CarregaAssignaturesPopup()
+    {
+        PopupAssignatures.Clear();
+        foreach (var a in _horari.ObteAssignatures()) PopupAssignatures.Add(a);
+    }
+
+    // Obre el pop-up per crear una classe nova (des d'un buit del calendari).
+    public void ObrePopupNovaClasse(int dia, int horaIniciMinuts)
+    {
+        CarregaAssignaturesPopup();
+        if (PopupAssignatures.Count == 0)
+        {
+            MissatgeHorari = "Primer defineix alguna assignatura a Configuració.";
+            return;
+        }
+        _popupClasseId = 0;
+        PopupEsEdicio = false;
+        PopupTitol = "Nova classe";
+        PopupDia = dia >= 1 && dia <= 5 ? dia : 1;
+        var ini = new TimeOnly(horaIniciMinuts / 60, horaIniciMinuts % 60);
+        PopupHoraInici = ini.ToString("HH:mm");
+        PopupHoraFi = ini.AddHours(1).ToString("HH:mm");
+        PopupAssignatura = PopupAssignatures.FirstOrDefault();
+        PopupGrup = string.Empty;
+        PopupAula = string.Empty;
+        MissatgePopup = string.Empty;
+        MostraPopupClasse = true;
+    }
+
+    // Obre el pop-up per editar una classe existent (des d'un bloc del calendari).
+    public void ObrePopupEditaClasse(BlocCalendariVm bloc)
+    {
+        CarregaAssignaturesPopup();
+        var c = bloc.Classe;
+        _popupClasseId = c.Id;
+        PopupEsEdicio = true;
+        PopupTitol = "Edita la classe";
+        PopupDia = c.DiaSetmana;
+        PopupHoraInici = c.HoraInici.ToString("HH:mm");
+        PopupHoraFi = c.HoraFi.ToString("HH:mm");
+        PopupAssignatura = PopupAssignatures.FirstOrDefault(a => a.Id == c.AssignaturaId) ?? PopupAssignatures.FirstOrDefault();
+        PopupGrup = c.Grup;
+        PopupAula = c.Aula;
+        MissatgePopup = string.Empty;
+        MostraPopupClasse = true;
+    }
+
+    [RelayCommand]
+    private void CancelaPopupClasse() => MostraPopupClasse = false;
+
+    [RelayCommand]
+    private void DesaClassePopup()
+    {
+        if (PopupAssignatura == null)
+        {
+            MissatgePopup = "Selecciona una assignatura.";
+            return;
+        }
+        if (!TimeOnly.TryParse(PopupHoraInici, out var hi) || !TimeOnly.TryParse(PopupHoraFi, out var hf) || hf <= hi)
+        {
+            MissatgePopup = "Horari no vàlid (inici < fi, format HH:mm).";
+            return;
+        }
+
+        var classe = new ClasseHorari
+        {
+            Id = _popupClasseId,
+            VersioHorariId = _versioActiva,
+            DiaSetmana = PopupDia,
+            HoraInici = hi,
+            HoraFi = hf,
+            AssignaturaId = PopupAssignatura.Id,
+            Grup = PopupGrup?.Trim() ?? "",
+            Aula = PopupAula?.Trim() ?? ""
+        };
+
+        if (PopupEsEdicio) _horari.ActualitzaClasse(classe);
+        else _horari.AfegeixClasse(classe);
+
+        MostraPopupClasse = false;
+        CarregaHorari();
+        RefrescaGraella();
+    }
+
+    [RelayCommand]
+    private void EliminaClassePopup()
+    {
+        if (_popupClasseId > 0)
+            _horari.EliminaClasse(_popupClasseId);
+        MostraPopupClasse = false;
+        CarregaHorari();
+        RefrescaGraella();
+    }
+
+    // ---- Dies de lliure disposició (a Configuració) ----
+    public ObservableCollection<Festiu> DiesLliure { get; } = new();
+    [ObservableProperty] private DateTime _novaDataLliure = DateTime.Today;
+    [ObservableProperty] private string _descripcioLliure = string.Empty;
+    [ObservableProperty] private string _missatgeLliure = string.Empty;
+
+    public void RefrescaDiesLliure()
+    {
+        DiesLliure.Clear();
+        foreach (var f in _calendari.ObteFestius().Where(f => f.Tipus == "LliureDisposicio").OrderBy(f => f.Data))
+            DiesLliure.Add(f);
+    }
+
+    [RelayCommand]
+    private void AfegeixDiaLliure()
+    {
+        _calendari.AfegeixDiaLliure(NovaDataLliure.Date, DescripcioLliure);
+        DescripcioLliure = string.Empty;
+        RefrescaDiesLliure();
+        RefrescaGraella();
+        MissatgeLliure = "Dia de lliure disposició afegit.";
+    }
+
+    [RelayCommand]
+    private void EliminaDiaLliure(Festiu f)
+    {
+        if (f == null) return;
+        _calendari.EliminaFestiu(f.Id);
+        RefrescaDiesLliure();
+        RefrescaGraella();
+        MissatgeLliure = "Dia eliminat.";
     }
 
     // ---- Actualitzacions (actualitzador assistit) ----
@@ -907,14 +873,6 @@ public class CopiaVm
     public string Descripcio => $"{Data:dd/MM/yyyy HH:mm}  ·  {Math.Round(Bytes / 1024.0)} KB  ·  {Nom}";
 }
 
-// Fila de la graella d'horari: etiqueta de la franja + 5 cel·les (dilluns-divendres).
-public class FilaHorariViewModel : ViewModelBase
-{
-    public string Franja { get; }
-    public ObservableCollection<ClasseCellaViewModel?> Celles { get; } = new();
-    public FilaHorariViewModel(string franja) => Franja = franja;
-}
-
 // Capçalera d'un dia de la setmana (nom + data, marca d'avui i festiu).
 public class DiaCapceleraVm : ViewModelBase
 {
@@ -936,13 +894,6 @@ public class DiaCapceleraVm : ViewModelBase
     // Text de la capçalera: nom + data; si és festiu, ho indica.
     public string Titol => EsFestiu ? $"{Nom} {DataText}" : $"{Nom} {DataText}";
     public string SubTitol => EsFestiu ? Festiu! : (EsAvui ? "Avui" : "");
-}
-
-// Model editable de franja per a l'assistent.
-public partial class FranjaEditVm : ViewModelBase
-{
-    [ObservableProperty] private string _horaInici = "08:00";
-    [ObservableProperty] private string _horaFi = "09:00";
 }
 
 // Model editable d'assignatura per a l'assistent.

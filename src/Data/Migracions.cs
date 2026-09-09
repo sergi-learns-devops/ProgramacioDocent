@@ -98,6 +98,31 @@ ALTER TABLE Configuracio ADD COLUMN ProfCentre TEXT NOT NULL DEFAULT '';
 ALTER TABLE Configuracio ADD COLUMN ProfDepartament TEXT NOT NULL DEFAULT '';
 ALTER TABLE Configuracio ADD COLUMN ProfEmail TEXT NOT NULL DEFAULT '';
 "),
+
+        (3, "Les classes tenen hora pròpia (s'elimina el concepte de franja)", @"
+-- Nou model: cada classe porta la seva HoraInici i HoraFi directament,
+-- en lloc de referenciar una franja predefinida.
+-- Es recrea ClasseHorari amb el nou esquema i s'eliminen les dades antigues
+-- d'horari (les notes també, per la clau forana). El calendari de festius i la
+-- configuració es conserven.
+DROP TABLE IF EXISTS ClasseHorari;
+DROP TABLE IF EXISTS FranjaHorari;
+
+CREATE TABLE ClasseHorari (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    VersioHorariId INTEGER NOT NULL,
+    DiaSetmana INTEGER NOT NULL,          -- 1 = dilluns ... 5 = divendres
+    HoraInici TEXT NOT NULL,              -- 'HH:mm'
+    HoraFi TEXT NOT NULL,                 -- 'HH:mm'
+    AssignaturaId INTEGER NOT NULL,
+    Grup TEXT NOT NULL DEFAULT '',
+    Aula TEXT NOT NULL DEFAULT '',
+    FOREIGN KEY (VersioHorariId) REFERENCES VersioHorari(Id) ON DELETE CASCADE,
+    FOREIGN KEY (AssignaturaId) REFERENCES Assignatura(Id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IX_ClasseHorari_Versio ON ClasseHorari(VersioHorariId);
+"),
     };
 
     // Aplica totes les migracions pendents. Retorna la versió final assolida.

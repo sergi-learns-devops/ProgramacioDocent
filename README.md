@@ -14,20 +14,20 @@ classes, prendre notes setmanals per classe i generar informes per assignatura.
 
 ## 1. Funcionalitats
 
-- **Assistent inicial en dos passos**: en obrir l'aplicació per primera vegada,
-  el professor (1) defineix les seves franjes horàries i assignatures i (2)
-  **col·loca les classes a la graella per dia** (dilluns a divendres). En afegir
-  una franja, l'hora d'inici s'omple **automàticament** amb l'hora de fi de
-  l'anterior.
-- **Horari editable**: es pot modificar en qualsevol moment des de la secció
-  **Configuració** (reducció de jornada, canvi de curs, etc.). L'horari es
-  versiona, de manera que canviar-lo **no esborra les notes ja preses** amb
-  l'horari anterior.
+- **Assistent inicial senzill**: en obrir l'aplicació per primera vegada, el
+  professor només indica les **assignatures** que imparteix.
+- **Horari a cop de clic** (com un calendari): a la pestanya Horari, **fes clic
+  en un dia i una hora** i s'obre un formulari per triar l'assignatura, l'hora
+  d'inici i de fi, el grup i l'aula. Per **editar o eliminar** una classe, fes
+  clic a la icona ✎ del seu bloc. Cada classe té la seva pròpia franja horària
+  (no cal predefinir-les).
+- **Horari editable** en qualsevol moment. L'horari es versiona, de manera que
+  els canvis **no esborren les notes ja preses**.
 - **Vista d'horari tipus calendari** (dilluns–divendres), semblant a Google
-  Calendar: eix de temps vertical, cada classe es mostra com un bloc amb
-  **alçada proporcional a la seva durada** i color per assignatura. La columna
-  del **dia actual** es ressalta, els **dies festius** apareixen atenuats i les
-  hores sense classe queden com a espais buits. Es navega per setmanes.
+  Calendar: eix de temps vertical, cada classe és un bloc amb **alçada
+  proporcional a la seva durada** i color per assignatura. La columna del **dia
+  actual** es ressalta i els **dies no lectius** (festius i de lliure disposició)
+  apareixen atenuats. Es navega per setmanes.
 - **Notes per classe i setmana**: en fer clic sobre una classe de la graella,
   s'obre un editor de **text lliure** per anotar el que calgui sobre la classe i
   els alumnes. Les classes amb notes es marquen amb un punt verd.
@@ -37,7 +37,10 @@ classes, prendre notes setmanals per classe i generar informes per assignatura.
 - **Secció Configuració**:
   - **Aparença**: mode **clar / fosc / sistema**, commutable i persistent.
   - **Perfil del professor**: nom, cognoms, centre, departament i correu.
-  - **Edició de l'horari**: afegir/eliminar assignatures, franjes i classes.
+  - **Assignatures i horari**: gestionar les assignatures; les classes es
+    col·loquen des de la pestanya Horari (clic en un dia i hora).
+  - **Dies de lliure disposició**: afegir/treure els dies no lectius propis del
+    centre, que es mostren atenuats a l'horari.
   - **Còpies de seguretat**: es fa una còpia **automàtica en arrencar**; també
     se'n poden crear manualment i **restaurar-ne** una d'anterior (amb validació
     d'integritat prèvia).

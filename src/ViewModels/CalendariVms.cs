@@ -27,7 +27,7 @@ public class BlocCalendariVm : ViewModelBase
     }
 
     public string NomAssignatura => Classe.Assignatura?.Nom ?? "";
-    public string Franja => Classe.Franja?.Etiqueta ?? "";
+    public string Franja => Classe.Etiqueta;
     public string Detall
     {
         get

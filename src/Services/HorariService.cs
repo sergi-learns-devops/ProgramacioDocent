@@ -49,38 +49,6 @@ public class HorariService
 
     // ---------- Franjes ----------
 
-    public List<FranjaHorari> ObteFranjes()
-    {
-        var llista = new List<FranjaHorari>();
-        using var conn = _db.ObreConnexio();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT Id, Ordre, HoraInici, HoraFi FROM FranjaHorari ORDER BY Ordre;";
-        using var r = cmd.ExecuteReader();
-        while (r.Read())
-        {
-            llista.Add(new FranjaHorari
-            {
-                Id = r.GetInt32(0),
-                Ordre = r.GetInt32(1),
-                HoraInici = TimeOnly.Parse(r.GetString(2)),
-                HoraFi = TimeOnly.Parse(r.GetString(3))
-            });
-        }
-        return llista;
-    }
-
-    public int AfegeixFranja(FranjaHorari f)
-    {
-        using var conn = _db.ObreConnexio();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText =
-            "INSERT INTO FranjaHorari (Ordre, HoraInici, HoraFi) VALUES ($o, $i, $f); SELECT last_insert_rowid();";
-        cmd.Parameters.AddWithValue("$o", f.Ordre);
-        cmd.Parameters.AddWithValue("$i", f.HoraInici.ToString("HH:mm"));
-        cmd.Parameters.AddWithValue("$f", f.HoraFi.ToString("HH:mm"));
-        return Convert.ToInt32(cmd.ExecuteScalar());
-    }
-
     // ---------- Versions d'horari ----------
 
     public int CreaVersio(string descripcio, DateTime dataInici)
@@ -170,15 +138,34 @@ ORDER BY DataInici DESC LIMIT 1;";
         using var conn = _db.ObreConnexio();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-INSERT INTO ClasseHorari (VersioHorariId, DiaSetmana, FranjaId, AssignaturaId, Grup, Aula)
-VALUES ($v, $d, $f, $a, $g, $au); SELECT last_insert_rowid();";
+INSERT INTO ClasseHorari (VersioHorariId, DiaSetmana, HoraInici, HoraFi, AssignaturaId, Grup, Aula)
+VALUES ($v, $d, $hi, $hf, $a, $g, $au); SELECT last_insert_rowid();";
         cmd.Parameters.AddWithValue("$v", c.VersioHorariId);
         cmd.Parameters.AddWithValue("$d", c.DiaSetmana);
-        cmd.Parameters.AddWithValue("$f", c.FranjaId);
+        cmd.Parameters.AddWithValue("$hi", c.HoraInici.ToString("HH:mm"));
+        cmd.Parameters.AddWithValue("$hf", c.HoraFi.ToString("HH:mm"));
         cmd.Parameters.AddWithValue("$a", c.AssignaturaId);
         cmd.Parameters.AddWithValue("$g", c.Grup);
         cmd.Parameters.AddWithValue("$au", c.Aula);
         return Convert.ToInt32(cmd.ExecuteScalar());
+    }
+
+    // Actualitza una classe existent (hora, assignatura, grup, aula).
+    public void ActualitzaClasse(ClasseHorari c)
+    {
+        using var conn = _db.ObreConnexio();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+UPDATE ClasseHorari SET DiaSetmana=$d, HoraInici=$hi, HoraFi=$hf,
+    AssignaturaId=$a, Grup=$g, Aula=$au WHERE Id=$id;";
+        cmd.Parameters.AddWithValue("$d", c.DiaSetmana);
+        cmd.Parameters.AddWithValue("$hi", c.HoraInici.ToString("HH:mm"));
+        cmd.Parameters.AddWithValue("$hf", c.HoraFi.ToString("HH:mm"));
+        cmd.Parameters.AddWithValue("$a", c.AssignaturaId);
+        cmd.Parameters.AddWithValue("$g", c.Grup);
+        cmd.Parameters.AddWithValue("$au", c.Aula);
+        cmd.Parameters.AddWithValue("$id", c.Id);
+        cmd.ExecuteNonQuery();
     }
 
     public void EliminaClasse(int id)
@@ -190,15 +177,14 @@ VALUES ($v, $d, $f, $a, $g, $au); SELECT last_insert_rowid();";
         cmd.ExecuteNonQuery();
     }
 
-    // Buida completament l'horari: elimina classes, franjes, assignatures i
-    // versions. ATENCIÓ: en esborrar les classes, les notes associades també
-    // s'eliminen per la clau forana ON DELETE CASCADE. Fer sempre una còpia de
-    // seguretat abans de cridar aquest mètode.
+    // Buida completament l'horari: elimina classes, assignatures i versions.
+    // ATENCIÓ: en esborrar les classes, les notes associades també s'eliminen
+    // per la clau forana ON DELETE CASCADE. Fer sempre una còpia de seguretat abans.
     public void BuidaHorari()
     {
         using var conn = _db.ObreConnexio();
         using var tx = conn.BeginTransaction();
-        foreach (var taula in new[] { "ClasseHorari", "FranjaHorari", "Assignatura", "VersioHorari" })
+        foreach (var taula in new[] { "ClasseHorari", "Assignatura", "VersioHorari" })
         {
             using var cmd = conn.CreateCommand();
             cmd.Transaction = tx;
@@ -208,21 +194,19 @@ VALUES ($v, $d, $f, $a, $g, $au); SELECT last_insert_rowid();";
         tx.Commit();
     }
 
-    // Retorna totes les classes d'una versió d'horari, amb franja i assignatura.
+    // Retorna totes les classes d'una versió d'horari, amb l'assignatura.
     public List<ClasseHorari> ObteClasses(int versioId)
     {
         var llista = new List<ClasseHorari>();
         using var conn = _db.ObreConnexio();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-SELECT c.Id, c.VersioHorariId, c.DiaSetmana, c.FranjaId, c.AssignaturaId, c.Grup, c.Aula,
-       f.Ordre, f.HoraInici, f.HoraFi,
+SELECT c.Id, c.VersioHorariId, c.DiaSetmana, c.HoraInici, c.HoraFi, c.AssignaturaId, c.Grup, c.Aula,
        a.Nom, a.Curs, a.Color
 FROM ClasseHorari c
-JOIN FranjaHorari f ON f.Id = c.FranjaId
 JOIN Assignatura a ON a.Id = c.AssignaturaId
 WHERE c.VersioHorariId = $v
-ORDER BY c.DiaSetmana, f.Ordre;";
+ORDER BY c.DiaSetmana, c.HoraInici;";
         cmd.Parameters.AddWithValue("$v", versioId);
         using var r = cmd.ExecuteReader();
         while (r.Read())
@@ -232,23 +216,17 @@ ORDER BY c.DiaSetmana, f.Ordre;";
                 Id = r.GetInt32(0),
                 VersioHorariId = r.GetInt32(1),
                 DiaSetmana = r.GetInt32(2),
-                FranjaId = r.GetInt32(3),
-                AssignaturaId = r.GetInt32(4),
-                Grup = r.GetString(5),
-                Aula = r.GetString(6),
-                Franja = new FranjaHorari
-                {
-                    Id = r.GetInt32(3),
-                    Ordre = r.GetInt32(7),
-                    HoraInici = TimeOnly.Parse(r.GetString(8)),
-                    HoraFi = TimeOnly.Parse(r.GetString(9))
-                },
+                HoraInici = TimeOnly.Parse(r.GetString(3)),
+                HoraFi = TimeOnly.Parse(r.GetString(4)),
+                AssignaturaId = r.GetInt32(5),
+                Grup = r.GetString(6),
+                Aula = r.GetString(7),
                 Assignatura = new Assignatura
                 {
-                    Id = r.GetInt32(4),
-                    Nom = r.GetString(10),
-                    Curs = r.GetString(11),
-                    Color = r.GetString(12)
+                    Id = r.GetInt32(5),
+                    Nom = r.GetString(8),
+                    Curs = r.GetString(9),
+                    Color = r.GetString(10)
                 }
             });
         }

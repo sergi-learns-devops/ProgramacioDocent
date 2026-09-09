@@ -91,14 +91,13 @@ VALUES ($c, $d, $t, $cr, $mo);";
         using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
 SELECT a.Nom, a.Curs, n.DataDilluns, c.DiaSetmana,
-       f.HoraInici || ' - ' || f.HoraFi AS Franja, n.Text
+       c.HoraInici || ' - ' || c.HoraFi AS Franja, n.Text
 FROM NotaSetmanal n
 JOIN ClasseHorari c ON c.Id = n.ClasseHorariId
 JOIN Assignatura a ON a.Id = c.AssignaturaId
-JOIN FranjaHorari f ON f.Id = c.FranjaId
 WHERE n.DataDilluns >= $desde AND n.DataDilluns <= $fins
   AND TRIM(n.Text) <> ''
-ORDER BY a.Nom, n.DataDilluns, c.DiaSetmana, f.Ordre;";
+ORDER BY a.Nom, n.DataDilluns, c.DiaSetmana, c.HoraInici;";
         cmd.Parameters.AddWithValue("$desde", desde.ToString("yyyy-MM-dd"));
         cmd.Parameters.AddWithValue("$fins", fins.ToString("yyyy-MM-dd"));
         using var r = cmd.ExecuteReader();

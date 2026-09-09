@@ -71,7 +71,8 @@ public partial class MainWindow : Window
         var vorera = Brush("BrushBorder");
         var surface = Brush("BrushSurface");
 
-        // 1) Fons de cada columna de dia (avui ressaltat, festiu atenuat).
+        // 1) Fons de cada columna de dia (avui ressaltat, festiu atenuat) i
+        //    cel·les buides clicables per crear una classe nova.
         foreach (var col in _vm.ColumnesDia)
         {
             var fons = new Border
@@ -86,6 +87,25 @@ public partial class MainWindow : Window
             Grid.SetRow(fons, 0);
             Grid.SetRowSpan(fons, files);
             host.Children.Add(fons);
+
+            // Botó transparent per cada fila (30 min) per obrir el pop-up de nova classe.
+            for (int r = 0; r < files; r++)
+            {
+                int minuts = _vm.MinutBase + r * 30;
+                var cel = new Button
+                {
+                    Background = Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    Padding = new Thickness(0),
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch,
+                    Tag = new int[] { col.Columna, minuts }
+                };
+                cel.Click += OnCelBuidaClick;
+                Grid.SetColumn(cel, col.Columna);
+                Grid.SetRow(cel, r);
+                host.Children.Add(cel);
+            }
         }
 
         // 2) Línies horitzontals de cada hora + etiqueta a l'eix.
@@ -95,7 +115,8 @@ public partial class MainWindow : Window
             {
                 BorderBrush = vorera,
                 BorderThickness = new Thickness(0, 0.8, 0, 0),
-                VerticalAlignment = VerticalAlignment.Top
+                VerticalAlignment = VerticalAlignment.Top,
+                IsHitTestVisible = false
             };
             Grid.SetColumn(linia, 1);
             Grid.SetColumnSpan(linia, 5);
@@ -164,7 +185,6 @@ public partial class MainWindow : Window
             var boto = new Button
             {
                 Padding = new Thickness(0),
-                Margin = new Thickness(2, 1),
                 Background = Brushes.Transparent,
                 BorderThickness = new Thickness(0),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -176,10 +196,31 @@ public partial class MainWindow : Window
             };
             boto.Click += OnBlocClick;
 
-            Grid.SetColumn(boto, bloc.Columna); // 1..5
-            Grid.SetRow(boto, bloc.Fila);
-            Grid.SetRowSpan(boto, bloc.FilesSpan);
-            host.Children.Add(boto);
+            // Botó petit d'edició a la cantonada (dia/hora/assignatura).
+            var botoEdita = new Button
+            {
+                Content = "✎",
+                FontSize = 11,
+                Padding = new Thickness(4, 0),
+                Margin = new Thickness(0, 2, 4, 0),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Foreground = bloc.TextBrush,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Tag = bloc
+            };
+            ToolTip.SetTip(botoEdita, "Edita o elimina la classe");
+            botoEdita.Click += OnEditaBlocClick;
+
+            var capa = new Grid { Margin = new Thickness(2, 1) };
+            capa.Children.Add(boto);
+            capa.Children.Add(botoEdita);
+
+            Grid.SetColumn(capa, bloc.Columna); // 1..5
+            Grid.SetRow(capa, bloc.Fila);
+            Grid.SetRowSpan(capa, bloc.FilesSpan);
+            host.Children.Add(capa);
         }
     }
 
@@ -187,6 +228,18 @@ public partial class MainWindow : Window
     {
         if (sender is Button b && b.Tag is BlocCalendariVm bloc && _vm != null)
             _vm.ObreNota(bloc);
+    }
+
+    private void OnEditaBlocClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button b && b.Tag is BlocCalendariVm bloc && _vm != null)
+            _vm.ObrePopupEditaClasse(bloc);
+    }
+
+    private void OnCelBuidaClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button b && b.Tag is int[] info && info.Length == 2 && _vm != null)
+            _vm.ObrePopupNovaClasse(info[0], info[1]);
     }
 
     // Genera l'informe i intenta obrir-lo amb l'aplicació per defecte.
