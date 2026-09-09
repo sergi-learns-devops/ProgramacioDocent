@@ -48,6 +48,12 @@ public partial class MainWindow : Window
     // Construeix la graella tipus calendari a partir de les dades del ViewModel.
     private void RenderCalendari()
     {
+        try { RenderCalendariIntern(); }
+        catch (Exception ex) { ProgramacioDocent.Services.LogService.Error("RenderCalendari", ex); }
+    }
+
+    private void RenderCalendariIntern()
+    {
         var host = this.FindControl<Grid>("CalendariHost");
         if (host == null || _vm == null) return;
 

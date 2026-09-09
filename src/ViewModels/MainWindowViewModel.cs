@@ -90,15 +90,13 @@ public partial class MainWindowViewModel : ViewModelBase
         var referencia = avui < _configuracio.DataIniciCurs ? _configuracio.DataIniciCurs : avui;
         _setmanaActual = CalendariService.DillunsDeLaSetmana(referencia);
 
+        // Carrega sempre les classes i calcula el calendari (encara que es mostri
+        // l'assistent), perquè la graella de fons tingui valors vàlids.
+        CarregaHorari();
+        RefrescaGraella();
+
         if (!_configuracio.AssistentCompletat)
-        {
             IniciaAssistent();
-        }
-        else
-        {
-            CarregaHorari();
-            RefrescaGraella();
-        }
 
         RefrescaCopies();
         RefrescaDiesLliure();
@@ -669,7 +667,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // ---- Dies de lliure disposició (a Configuració) ----
     public ObservableCollection<Festiu> DiesLliure { get; } = new();
-    [ObservableProperty] private DateTime _novaDataLliure = DateTime.Today;
+    // DatePicker.SelectedDate és DateTimeOffset?; cal aquest tipus per evitar
+    // un error de conversió que feia caure la pestanya Configuració.
+    [ObservableProperty] private DateTimeOffset? _novaDataLliure = DateTimeOffset.Now;
     [ObservableProperty] private string _descripcioLliure = string.Empty;
     [ObservableProperty] private string _missatgeLliure = string.Empty;
 
@@ -683,7 +683,12 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void AfegeixDiaLliure()
     {
-        _calendari.AfegeixDiaLliure(NovaDataLliure.Date, DescripcioLliure);
+        if (NovaDataLliure == null)
+        {
+            MissatgeLliure = "Selecciona una data.";
+            return;
+        }
+        _calendari.AfegeixDiaLliure(NovaDataLliure.Value.Date, DescripcioLliure);
         DescripcioLliure = string.Empty;
         RefrescaDiesLliure();
         RefrescaGraella();
