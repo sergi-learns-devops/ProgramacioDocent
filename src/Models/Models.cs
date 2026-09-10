@@ -16,6 +16,13 @@ public class Configuracio
     // Preferència de tema visual: 'Sistema' | 'Clar' | 'Fosc'.
     public string Tema { get; set; } = "Sistema";
 
+    // Preferència global d'on apareix l'editor de notes:
+    // 'Modal' (finestra flotant) | 'Inferior' (panell a sota) | 'Dret' (panell a la dreta).
+    public string PosicioEditorNotes { get; set; } = "Modal";
+
+    // Amplada (px) del panell de notes quan està a la dreta, ajustable amb el divisor.
+    public int AmpladaPanellDret { get; set; } = 320;
+
     // Perfil del professor (informació bàsica, opcional).
     public string ProfNom { get; set; } = string.Empty;
     public string ProfCognoms { get; set; } = string.Empty;
@@ -31,6 +38,9 @@ public class Assignatura
     public string Nom { get; set; } = string.Empty;
     public string Curs { get; set; } = string.Empty; // p.ex. "1r ESO A"
     public string Color { get; set; } = "#4F86C6";   // color per a la graella
+
+    // Text per a la llista de Configuració (nom i, si n'hi ha, curs).
+    public string NomICurs => string.IsNullOrWhiteSpace(Curs) ? Nom : $"{Nom} ({Curs})";
 }
 
 // Franja horària definida pel professor (p.ex. 08:00–09:00).
@@ -64,6 +74,18 @@ public class ClasseHorari
 
     // Etiqueta de la franja horària d'aquesta classe.
     public string Etiqueta => $"{HoraInici:HH\\:mm} - {HoraFi:HH\\:mm}";
+
+    // Resum per a la llista de Configuració: dia · assignatura · franja.
+    public string ResumConfig
+    {
+        get
+        {
+            string[] dies = { "", "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres" };
+            var dia = DiaSetmana >= 1 && DiaSetmana <= 5 ? dies[DiaSetmana] : "";
+            var nom = Assignatura?.Nom ?? "";
+            return $"{dia} · {nom} · {Etiqueta}";
+        }
+    }
 }
 
 // Nota de text lliure associada a una classe i a una setmana concreta.
@@ -84,4 +106,7 @@ public class Festiu
     public DateTime Data { get; set; }
     public string Nom { get; set; } = string.Empty;
     public string Tipus { get; set; } = "Festiu"; // Festiu | Vacances | LliureDisposicio
+
+    // Resum per a la llista de dies de lliure disposició a Configuració.
+    public string ResumLliure => $"{Data:dd/MM/yyyy} · {Nom}";
 }

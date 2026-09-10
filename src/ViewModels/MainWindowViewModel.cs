@@ -45,8 +45,18 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _textNota = string.Empty;
     [ObservableProperty] private string _titolNota = string.Empty;
     [ObservableProperty] private string _subtitolNota = string.Empty;
+    // Feedback temporal "Desat ✓" després de desar una nota.
+    [ObservableProperty] private bool _notaDesadaRecentment;
+    private System.Threading.Timer? _timerDesat;
     private ClasseHorari? _classeSeleccionada;
     private DateTime _diaSeleccionat;
+
+    // Quan canvia si hi ha una nota oberta, recalcula els estats derivats dels panells.
+    partial void OnMostraEditorNotaChanged(bool value)
+    {
+        OnPropertyChanged(nameof(MostraOverlayModal));
+        OnPropertyChanged(nameof(MostraEstatBuitPanell));
+    }
 
     // Informes.
     public ObservableCollection<string> FormatsInforme { get; } = new() { "PDF", "XLSX", "CSV" };
@@ -79,6 +89,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Configuració: tema i perfil.
         _temaSeleccionat = _configuracio.Tema;
+        _posicioEditorNotes = _configuracio.PosicioEditorNotes;
         _profNom = _configuracio.ProfNom;
         _profCognoms = _configuracio.ProfCognoms;
         _profCentre = _configuracio.ProfCentre;
@@ -358,14 +369,39 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (_classeSeleccionada == null) return;
         _notes.DesaNota(_classeSeleccionada.Id, SetmanaActual, TextNota ?? string.Empty);
-        MostraEditorNota = false;
         RefrescaGraella();
+
+        // En mode Modal tanquem la finestra. En un panell fix el deixem obert
+        // perquè el professor pugui seguir editant; mostrem feedback "Desat ✓".
+        if (EsModeModal)
+        {
+            MostraEditorNota = false;
+        }
+        else
+        {
+            // La graella s'ha refrescat i pot haver perdut la referència de
+            // selecció visual; recarreguem la nota per mantenir l'editor coherent.
+            MostraFeedbackDesat();
+        }
+    }
+
+    // Mostra "Desat ✓" durant uns segons (sense bloquejar).
+    private void MostraFeedbackDesat()
+    {
+        NotaDesadaRecentment = true;
+        _timerDesat?.Dispose();
+        _timerDesat = new System.Threading.Timer(_ =>
+        {
+            // Torna al fil d'UI per canviar la propietat enllaçada.
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => NotaDesadaRecentment = false);
+        }, null, 2000, System.Threading.Timeout.Infinite);
     }
 
     [RelayCommand]
     private void CancelaNota()
     {
         MostraEditorNota = false;
+        if (MostraPanellFix) _classeSeleccionada = null;
     }
 
     // ---------------- Informes ----------------
@@ -442,6 +478,77 @@ public partial class MainWindowViewModel : ViewModelBase
         _configuracio.Tema = value;
         _config.Desa(_configuracio);
         TemaCanviat?.Invoke(value); // App l'aplica a l'instant
+    }
+
+    // ---- Posició de l'editor de notes (preferència global) ----
+    // Valor persistit: 'Modal' | 'Inferior' | 'Dret'.
+    [ObservableProperty] private string _posicioEditorNotes = "Modal";
+
+    partial void OnPosicioEditorNotesChanged(string value)
+    {
+        _configuracio.PosicioEditorNotes = value;
+        _config.Desa(_configuracio);
+        // Notifica els booleans derivats perquè la vista actualitzi els panells.
+        OnPropertyChanged(nameof(EsModeModal));
+        OnPropertyChanged(nameof(EsModeInferior));
+        OnPropertyChanged(nameof(EsModeDret));
+        OnPropertyChanged(nameof(MostraPanellFix));
+        OnPropertyChanged(nameof(MostraOverlayModal));
+        OnPropertyChanged(nameof(MostraEstatBuitPanell));
+        // Sincronitza els booleans dels RadioButton (patró radio-enum).
+        OnPropertyChanged(nameof(ModeNotaModal));
+        OnPropertyChanged(nameof(ModeNotaInferior));
+        OnPropertyChanged(nameof(ModeNotaDret));
+    }
+
+    // Booleans derivats per condicionar el layout a la vista.
+    public bool EsModeModal => PosicioEditorNotes == "Modal";
+    public bool EsModeInferior => PosicioEditorNotes == "Inferior";
+    public bool EsModeDret => PosicioEditorNotes == "Dret";
+
+    // Un panell fix (inferior o dret) està actiu.
+    public bool MostraPanellFix => EsModeInferior || EsModeDret;
+    // L'overlay modal només es mostra en mode Modal i amb una nota oberta.
+    public bool MostraOverlayModal => EsModeModal && MostraEditorNota;
+    // En un panell fix, si no hi ha cap nota oberta, es mostra l'estat buit.
+    public bool MostraEstatBuitPanell => MostraPanellFix && !MostraEditorNota;
+
+    // Selecció de mode per als RadioButton (patró radio-enum: assignar true fixa el valor).
+    public bool ModeNotaModal
+    {
+        get => EsModeModal;
+        set { if (value) PosicioEditorNotes = "Modal"; }
+    }
+    public bool ModeNotaInferior
+    {
+        get => EsModeInferior;
+        set { if (value) PosicioEditorNotes = "Inferior"; }
+    }
+    public bool ModeNotaDret
+    {
+        get => EsModeDret;
+        set { if (value) PosicioEditorNotes = "Dret"; }
+    }
+
+    // Tanca l'editor en mode panell fix (torna a l'estat buit sense desar).
+    [RelayCommand]
+    private void TancaPanellNota()
+    {
+        MostraEditorNota = false;
+        _classeSeleccionada = null;
+    }
+
+    // Amplada actual del panell dret (px). La vista la llegeix a l'arrencada i la
+    // desa quan l'usuari acaba d'arrossegar el divisor.
+    public int AmpladaPanellDret => _configuracio.AmpladaPanellDret;
+
+    // Desa la nova amplada del panell dret (cridada per la vista en soltar el divisor).
+    public void DesaAmpladaPanell(double px)
+    {
+        int valor = (int)Math.Round(px);
+        if (valor == _configuracio.AmpladaPanellDret) return;
+        _configuracio.AmpladaPanellDret = valor; // ConfigService la limita al rang vàlid
+        _config.Desa(_configuracio);
     }
 
     // ---- Perfil del professor ----

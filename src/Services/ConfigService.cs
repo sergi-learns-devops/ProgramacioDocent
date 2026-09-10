@@ -18,7 +18,8 @@ public class ConfigService
         cmd.CommandText = @"
 SELECT Id, CursEscolar, DataIniciCurs, DataFiCurs, FormatInformePreferit,
        AssistentCompletat, VersioHorariActivaId,
-       Tema, ProfNom, ProfCognoms, ProfCentre, ProfDepartament, ProfEmail
+       Tema, ProfNom, ProfCognoms, ProfCentre, ProfDepartament, ProfEmail,
+       PosicioEditorNotes, AmpladaPanellDret
 FROM Configuracio LIMIT 1;";
         using var r = cmd.ExecuteReader();
         if (!r.Read())
@@ -38,9 +39,22 @@ FROM Configuracio LIMIT 1;";
             ProfCognoms = r.GetString(9),
             ProfCentre = r.GetString(10),
             ProfDepartament = r.GetString(11),
-            ProfEmail = r.GetString(12)
+            ProfEmail = r.GetString(12),
+            PosicioEditorNotes = NormalitzaPosicio(r.IsDBNull(13) ? null : r.GetString(13)),
+            AmpladaPanellDret = ClampAmplada(r.IsDBNull(14) ? 320 : r.GetInt32(14))
         };
     }
+
+    // Valida la preferència de posició; qualsevol valor no reconegut torna a 'Modal'.
+    private static string NormalitzaPosicio(string? valor) => valor switch
+    {
+        "Inferior" => "Inferior",
+        "Dret" => "Dret",
+        _ => "Modal"
+    };
+
+    // Limita l'amplada del panell dret a un rang raonable (evita valors absurds).
+    private static int ClampAmplada(int px) => Math.Clamp(px, 240, 640);
 
     public void Desa(Configuracio c)
     {
@@ -59,7 +73,9 @@ UPDATE Configuracio SET
     ProfCognoms = $pcognoms,
     ProfCentre = $pcentre,
     ProfDepartament = $pdept,
-    ProfEmail = $pemail
+    ProfEmail = $pemail,
+    PosicioEditorNotes = $posicio,
+    AmpladaPanellDret = $amplada
 WHERE Id = $id;";
         cmd.Parameters.AddWithValue("$curs", c.CursEscolar);
         cmd.Parameters.AddWithValue("$ini", c.DataIniciCurs.ToString("yyyy-MM-dd"));
@@ -73,6 +89,8 @@ WHERE Id = $id;";
         cmd.Parameters.AddWithValue("$pcentre", c.ProfCentre ?? string.Empty);
         cmd.Parameters.AddWithValue("$pdept", c.ProfDepartament ?? string.Empty);
         cmd.Parameters.AddWithValue("$pemail", c.ProfEmail ?? string.Empty);
+        cmd.Parameters.AddWithValue("$posicio", NormalitzaPosicio(c.PosicioEditorNotes));
+        cmd.Parameters.AddWithValue("$amplada", ClampAmplada(c.AmpladaPanellDret));
         cmd.Parameters.AddWithValue("$id", c.Id);
         cmd.ExecuteNonQuery();
     }

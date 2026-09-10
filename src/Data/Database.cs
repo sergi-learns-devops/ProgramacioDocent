@@ -118,7 +118,7 @@ VALUES ('2026-2027', '2026-09-08', '2027-06-21', 'PDF', 0, 0);";
     {
         using var conn = ObreConnexio();
         using var tx = conn.BeginTransaction();
-        foreach (var taula in new[] { "NotaSetmanal", "ClasseHorari", "FranjaHorari", "Assignatura", "VersioHorari" })
+        foreach (var taula in new[] { "NotaSetmanal", "ClasseHorari", "Assignatura", "VersioHorari" })
         {
             using var cmd = conn.CreateCommand();
             cmd.Transaction = tx;

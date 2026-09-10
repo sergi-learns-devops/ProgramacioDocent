@@ -7,10 +7,12 @@
     <LangVersion>latest</LangVersion>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Icona incrustada a l'.exe (Explorador, barra de tasques, propietats). -->
+    <ApplicationIcon>Assets/icona.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AssemblyName>ProgramacioDocent</AssemblyName>
     <RootNamespace>ProgramacioDocent</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>2.1.0</Version>
     <Company>Programació Docent</Company>
     <Product>Programació Docent</Product>
 

@@ -124,6 +124,26 @@ src/
 - El log escriu un marcador d'inici i les fases d'arrencada. Els handlers globals
   (AppDomain, TaskScheduler i **Dispatcher.UIThread**) registren qualsevol excepció,
   inclosos els errors de render en canviar de pestanya.
+- **Crash sense rastre al log = fallada NATIVA (GPU o stack overflow).** Si l'app
+  es tanca de cop i al log NO hi ha cap ERROR, no és una excepció de .NET (els
+  handlers gestionats no la poden capturar). Dues causes possibles:
+  - **Stack overflow (exit code -1073741571 / 0xC00000FD)**: recursió de layout.
+    **Causa coneguda en aquest projecte**: `<Run Text="{Binding ...}"/>` inline
+    dins d'un `TextBlock` amb **compiled bindings** (el projecte té
+    `AvaloniaUseCompiledBindingsByDefault=true`). Materialitzar aquests `Run` en un
+    `ItemsControl` amb dades feia caure la pestanya Configuració sense deixar log.
+    **Solució aplicada**: no usar `<Run>` amb binding; exposar una propietat de
+    text al model (p. ex. `Assignatura.NomICurs`, `ClasseHorari.ResumConfig`,
+    `Festiu.ResumLliure`) i enllaçar-la amb `TextBlock Text="{Binding ...}"`.
+  - **Fallada de GPU**: drivers antics, VM, entorns capats. Solució: mode segur
+    (render per programari), descrit a sota.
+- **Mode segur (render per programari, CPU):** força el render sense GPU, sense
+  recompilar, de dues maneres:
+  1. Variable d'entorn: `PROGRAMACIODOCENT_SOFTWARE_RENDER=1`.
+  2. Crear un fitxer buit `render-software.txt` al costat de `ProgramacioDocent.exe`.
+  `Program.cs` (`BuildAvaloniaApp` → `VolRenderProgramari`) ho detecta i aplica
+  `Win32PlatformOptions { RenderingMode = [Software] }`. El log indica quin mode
+  s'ha usat: "Render per GPU" o "Render per PROGRAMARI (mode segur, sense GPU)".
 
 ## Estat i tasques pendents
 

@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:ProgramacioDocent.ViewModels"
         xmlns:views="clr-namespace:ProgramacioDocent.Views"
+        xmlns:models="clr-namespace:ProgramacioDocent.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
@@ -53,41 +54,106 @@
                         </Border>
 
                         <!-- Missatge d'ajuda -->
-                        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                        <TextBlock DockPanel.Dock="Bottom" Margin="0,8,0,0" TextWrapping="Wrap"
                                    Foreground="{DynamicResource BrushTextSecondary}"
                                    Text="Fes clic sobre un bloc de classe per afegir o editar les notes d'aquella setmana. Els blocs amb un punt verd ja tenen notes. La columna d'avui es ressalta i els dies festius es mostren atenuats."/>
 
-                        <!-- Capçalera de dies (fixa, alineada amb la graella) -->
-                        <Grid DockPanel.Dock="Top" x:Name="CapceleraCalendari"
-                              ColumnDefinitions="56,*,*,*,*,*" Margin="0,0,0,4">
-                            <ItemsControl Grid.Column="1" Grid.ColumnSpan="5" ItemsSource="{Binding DiesCapcalera}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Rows="1" Columns="5"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:DiaCapceleraVm">
-                                        <Border Margin="2" CornerRadius="4" Padding="4,3"
-                                                Background="{DynamicResource BrushSurfaceAlt}">
-                                            <StackPanel HorizontalAlignment="Center">
-                                                <TextBlock Text="{Binding Titol}" FontWeight="Bold"
-                                                           HorizontalAlignment="Center"
-                                                           Foreground="{DynamicResource BrushTextPrimary}"/>
-                                                <TextBlock Text="{Binding SubTitol}" FontSize="11"
-                                                           HorizontalAlignment="Center"
-                                                           Foreground="{DynamicResource BrushTextSecondary}"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Grid>
+                        <!-- Graella tipus calendari (es construeix al codi darrere).
+                             El Grid pare permet col·locar un panell fix d'edició de
+                             notes a sota o a la dreta, com a germans del ScrollViewer
+                             (mai niats) per no alterar el scroll ni provocar recursió.
+                             La capçalera de dies viu DINS d'aquest Grid, a la mateixa
+                             columna que el calendari, perquè quan apareix el panell
+                             dret totes dues s'estrenyin alhora i quedin alineades. -->
+                        <Grid x:Name="GraellaAmbPanell" RowDefinitions="Auto,*,Auto">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MinWidth="420"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Graella tipus calendari (es construeix al codi darrere) -->
-                        <ScrollViewer>
-                            <Grid x:Name="CalendariHost" Margin="0,0,0,6"/>
-                        </ScrollViewer>
+                            <!-- Capçalera de dies (fixa, alineada amb la graella) -->
+                            <Grid Grid.Row="0" Grid.Column="0" x:Name="CapceleraCalendari"
+                                  ColumnDefinitions="56,*,*,*,*,*" Margin="0,0,0,4">
+                                <ItemsControl Grid.Column="1" Grid.ColumnSpan="5" ItemsSource="{Binding DiesCapcalera}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Rows="1" Columns="5"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:DiaCapceleraVm">
+                                            <Border Margin="2" CornerRadius="4" Padding="4,3"
+                                                    Background="{DynamicResource BrushSurfaceAlt}">
+                                                <StackPanel HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Titol}" FontWeight="Bold"
+                                                               HorizontalAlignment="Center"
+                                                               Foreground="{DynamicResource BrushTextPrimary}"/>
+                                                    <TextBlock Text="{Binding SubTitol}" FontSize="11"
+                                                               HorizontalAlignment="Center"
+                                                               Foreground="{DynamicResource BrushTextSecondary}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+
+                            <ScrollViewer Grid.Row="1" Grid.Column="0">
+                                <Grid x:Name="CalendariHost" Margin="0,0,0,6"/>
+                            </ScrollViewer>
+
+                            <!-- Panell fix INFERIOR -->
+                            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                                    IsVisible="{Binding EsModeInferior}"
+                                    Background="{DynamicResource BrushSurface}"
+                                    BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,1,0,0"
+                                    Padding="16,12" Height="260" Margin="0,6,0,0">
+                                <Panel>
+                                    <ContentControl Content="{Binding}" IsVisible="{Binding MostraEditorNota}">
+                                        <ContentControl.ContentTemplate>
+                                            <DataTemplate x:DataType="vm:MainWindowViewModel">
+                                                <views:EditorNotaView/>
+                                            </DataTemplate>
+                                        </ContentControl.ContentTemplate>
+                                    </ContentControl>
+                                    <TextBlock IsVisible="{Binding MostraEstatBuitPanell}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap"
+                                               Text="Fes clic en una classe per veure o editar-ne les notes."/>
+                                </Panel>
+                            </Border>
+
+                            <!-- Divisor arrossegable entre el calendari i el panell dret. -->
+                            <GridSplitter Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                                          x:Name="DivisorPanellDret"
+                                          IsVisible="{Binding EsModeDret}"
+                                          Width="6" ResizeDirection="Columns"
+                                          Background="{DynamicResource BrushBorder}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                                          ToolTip.Tip="Arrossega per ajustar l'amplada de les notes"/>
+
+                            <!-- Panell fix DRET (abasta capçalera + calendari) -->
+                            <Border Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
+                                    IsVisible="{Binding EsModeDret}"
+                                    Background="{DynamicResource BrushSurface}"
+                                    BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1,0,0,0"
+                                    Padding="16,12" Margin="0,0,0,0">
+                                <Panel>
+                                    <ContentControl Content="{Binding}" IsVisible="{Binding MostraEditorNota}">
+                                        <ContentControl.ContentTemplate>
+                                            <DataTemplate x:DataType="vm:MainWindowViewModel">
+                                                <views:EditorNotaView/>
+                                            </DataTemplate>
+                                        </ContentControl.ContentTemplate>
+                                    </ContentControl>
+                                    <TextBlock IsVisible="{Binding MostraEstatBuitPanell}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap"
+                                               Text="Fes clic en una classe per veure o editar-ne les notes."/>
+                                </Panel>
+                            </Border>
+                        </Grid>
                     </DockPanel>
                 </TabItem>
 
@@ -171,6 +237,26 @@
 
                             <Separator/>
 
+                            <!-- Posició de l'editor de notes -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Notes" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
+                                           Text="Tria on apareix l'editor en fer clic sobre una classe de l'horari. El canvi s'aplica immediatament."/>
+                                <StackPanel Spacing="4">
+                                    <RadioButton GroupName="PosicioNota" Content="Finestra flotant (per defecte)"
+                                                 IsChecked="{Binding ModeNotaModal}"
+                                                 Foreground="{DynamicResource BrushTextPrimary}"/>
+                                    <RadioButton GroupName="PosicioNota" Content="Panell a sota del calendari"
+                                                 IsChecked="{Binding ModeNotaInferior}"
+                                                 Foreground="{DynamicResource BrushTextPrimary}"/>
+                                    <RadioButton GroupName="PosicioNota" Content="Panell a la dreta del calendari"
+                                                 IsChecked="{Binding ModeNotaDret}"
+                                                 Foreground="{DynamicResource BrushTextPrimary}"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Separator/>
+
                             <!-- Perfil del professor -->
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Perfil del professor" FontSize="18" FontWeight="Bold"/>
@@ -207,11 +293,9 @@
                                            Foreground="{DynamicResource BrushTextPrimary}"/>
                                 <ItemsControl ItemsSource="{Binding AssignaturesConfig}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Margin="0,2" Foreground="{DynamicResource BrushTextPrimary}">
-                                                <Run Text="{Binding Nom}"/>
-                                                <Run Text="{Binding Curs, StringFormat=' ({0})'}"/>
-                                            </TextBlock>
+                                        <DataTemplate x:DataType="models:Assignatura">
+                                            <TextBlock Margin="0,2" Foreground="{DynamicResource BrushTextPrimary}"
+                                                       Text="{Binding NomICurs}"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -227,12 +311,9 @@
                                            Text="Per editar o eliminar una classe, fes clic sobre el seu bloc a la pestanya Horari."/>
                                 <ItemsControl ItemsSource="{Binding ClassesConfig}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Margin="0,2" Foreground="{DynamicResource BrushTextPrimary}">
-                                                <Run Text="{Binding DiaSetmana, Converter={StaticResource DiaConverter}}"/>
-                                                <Run Text=" · "/><Run Text="{Binding Assignatura.Nom}"/>
-                                                <Run Text=" · "/><Run Text="{Binding Etiqueta}"/>
-                                            </TextBlock>
+                                        <DataTemplate x:DataType="models:ClasseHorari">
+                                            <TextBlock Margin="0,2" Foreground="{DynamicResource BrushTextPrimary}"
+                                                       Text="{Binding ResumConfig}"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
@@ -254,13 +335,11 @@
                                 </StackPanel>
                                 <ItemsControl ItemsSource="{Binding DiesLliure}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
+                                        <DataTemplate x:DataType="models:Festiu">
                                             <Grid ColumnDefinitions="*,Auto" Margin="0,2" MaxWidth="480" HorizontalAlignment="Left">
                                                 <TextBlock Grid.Column="0" VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource BrushTextPrimary}">
-                                                    <Run Text="{Binding Data, StringFormat='{}{0:dd/MM/yyyy}'}"/>
-                                                    <Run Text=" · "/><Run Text="{Binding Nom}"/>
-                                                </TextBlock>
+                                                           Foreground="{DynamicResource BrushTextPrimary}"
+                                                           Text="{Binding ResumLliure}"/>
                                                 <Button Grid.Column="1" Content="Elimina"
                                                         Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).EliminaDiaLliureCommand}"
                                                         CommandParameter="{Binding}"/>
@@ -379,29 +458,11 @@
         </DockPanel>
 
         <!-- ================= OVERLAY: EDITOR DE NOTES ================= -->
-        <Border IsVisible="{Binding MostraEditorNota}"
+        <Border IsVisible="{Binding MostraOverlayModal}"
                 Background="#88000000">
-            <Border Background="{DynamicResource BrushSurface}" CornerRadius="10" Width="560" MaxHeight="520"
+            <Border Background="{DynamicResource BrushSurface}" CornerRadius="10" Width="560" Height="480"
                     VerticalAlignment="Center" HorizontalAlignment="Center" Padding="20">
-                <DockPanel LastChildFill="True">
-                    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
-                        <TextBlock Text="{Binding TitolNota}" FontSize="18" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding SubtitolNota}" Foreground="{DynamicResource BrushTextSecondary}"/>
-                        <TextBlock Foreground="{DynamicResource BrushWarningHoliday}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
-                                   Text="Protecció de dades: evita escriure noms complets d'alumnes; fes servir inicials o codis."/>
-                    </StackPanel>
-
-                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
-                                HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-                        <Button Content="Cancel·la" Command="{Binding CancelaNotaCommand}" Padding="16,8"/>
-                        <Button Content="Desa la nota" Classes="accent"
-                                Command="{Binding DesaNotaCommand}" Padding="16,8"/>
-                    </StackPanel>
-
-                    <TextBox Text="{Binding TextNota}" AcceptsReturn="True" TextWrapping="Wrap"
-                             Watermark="Escriu aquí les notes sobre la classe i els alumnes…"
-                             VerticalContentAlignment="Top" MinHeight="240"/>
-                </DockPanel>
+                <views:EditorNotaView/>
             </Border>
         </Border>
 

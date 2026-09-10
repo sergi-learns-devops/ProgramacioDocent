@@ -123,6 +123,22 @@ CREATE TABLE ClasseHorari (
 
 CREATE INDEX IF NOT EXISTS IX_ClasseHorari_Versio ON ClasseHorari(VersioHorariId);
 "),
+
+        (4, "Posició configurable de l'editor de notes", @"
+-- Preferència global d'on apareix l'editor de notes en fer clic sobre una
+-- classe: 'Modal' (finestra flotant, comportament actual) | 'Inferior'
+-- (panell a sota del calendari) | 'Dret' (panell a la dreta).
+-- ADD COLUMN és additiu i no reescriu la taula; el default 'Modal' conserva
+-- el comportament actual per a totes les bases de dades existents.
+ALTER TABLE Configuracio ADD COLUMN PosicioEditorNotes TEXT NOT NULL DEFAULT 'Modal';
+"),
+
+        (5, "Amplada del panell de notes dret (ajustable amb el divisor)", @"
+-- Amplada en píxels del panell de notes quan està a la dreta. L'usuari la pot
+-- ajustar arrossegant el divisor; es desa per recordar-la entre sessions.
+-- Default 320 (el valor fix anterior). ADD COLUMN és additiu i segur.
+ALTER TABLE Configuracio ADD COLUMN AmpladaPanellDret INTEGER NOT NULL DEFAULT 320;
+"),
     };
 
     // Aplica totes les migracions pendents. Retorna la versió final assolida.

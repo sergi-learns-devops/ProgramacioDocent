@@ -22,6 +22,58 @@ public partial class MainWindow : Window
         DataContextChanged += OnDataContextChanged;
         // Redibuixa el calendari quan canvia el tema (colors dels tokens).
         ActualThemeVariantChanged += (_, _) => RenderCalendari();
+        ConfiguraDivisorPanell();
+    }
+
+    // Configura el divisor arrossegable del panell dret: aplica l'amplada desada
+    // i la persisteix quan l'usuari acaba d'arrossegar.
+    private void ConfiguraDivisorPanell()
+    {
+        var splitter = this.FindControl<GridSplitter>("DivisorPanellDret");
+        if (splitter != null)
+            splitter.DragCompleted += (_, _) => DesaAmpladaColumna();
+    }
+
+    // Columna del panell dret dins del Grid pare (índex 2).
+    private ColumnDefinition? ColumnaPanell()
+    {
+        var grid = this.FindControl<Grid>("GraellaAmbPanell");
+        if (grid != null && grid.ColumnDefinitions.Count > 2)
+            return grid.ColumnDefinitions[2];
+        return null;
+    }
+
+    // Llegeix l'amplada actual de la columna del panell i la desa al ViewModel.
+    private void DesaAmpladaColumna()
+    {
+        if (_vm == null) return;
+        var col = ColumnaPanell();
+        if (col != null && col.Width.IsAbsolute && col.Width.Value > 0)
+            _vm.DesaAmpladaPanell(col.Width.Value);
+    }
+
+    // Aplica l'amplada de la columna del panell dret segons el mode actual:
+    // l'amplada desada si estem en mode Dret, o 0 (col·lapsada) en cas contrari.
+    // Fixa també un mínim (260 px) perquè el contingut no col·lapsi en arrossegar,
+    // i un màxim (640 px) coherent amb el rang desat.
+    private void AplicaAmpladaDesada()
+    {
+        if (_vm == null) return;
+        var col = ColumnaPanell();
+        if (col == null) return;
+        if (_vm.EsModeDret)
+        {
+            col.MinWidth = 260;
+            col.MaxWidth = 640;
+            col.Width = new GridLength(_vm.AmpladaPanellDret, GridUnitType.Pixel);
+        }
+        else
+        {
+            // Col·lapsada completament quan no s'usa el panell dret.
+            col.MinWidth = 0;
+            col.MaxWidth = double.PositiveInfinity;
+            col.Width = new GridLength(0, GridUnitType.Pixel);
+        }
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
@@ -32,11 +84,25 @@ public partial class MainWindow : Window
             {
                 _vm.ObreUrlDemanada -= ObreFitxer;
                 _vm.CalendariActualitzat -= RenderCalendari;
+                _vm.PropertyChanged -= OnVmPropertyChanged;
             }
             _vm = vm;
             vm.ObreUrlDemanada += ObreFitxer;
             vm.CalendariActualitzat += RenderCalendari;
+            vm.PropertyChanged += OnVmPropertyChanged;
+            AplicaAmpladaDesada();
             RenderCalendari();
+        }
+    }
+
+    // Quan canvia el mode de posició de notes, reajusta l'amplada de la columna
+    // del panell dret (aplica l'amplada desada o la col·lapsa a 0).
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.EsModeDret) ||
+            e.PropertyName == nameof(MainWindowViewModel.PosicioEditorNotes))
+        {
+            AplicaAmpladaDesada();
         }
     }
 
