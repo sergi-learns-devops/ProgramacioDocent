@@ -248,7 +248,7 @@
                                 <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushTextSecondary}"
                                            Text="Afegeix els dies no lectius propis del centre. Es mostraran atenuats a l'horari, com els festius."/>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <DatePicker SelectedDate="{Binding NovaDataLliure}"/>
+                                    <TextBox Text="{Binding NovaDataLliure}" Watermark="dd/mm/aaaa" Width="120"/>
                                     <TextBox Text="{Binding DescripcioLliure}" Watermark="Descripció (opcional)" Width="220"/>
                                     <Button Content="+ Afegeix" Command="{Binding AfegeixDiaLliureCommand}"/>
                                 </StackPanel>

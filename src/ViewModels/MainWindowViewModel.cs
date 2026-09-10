@@ -667,9 +667,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // ---- Dies de lliure disposició (a Configuració) ----
     public ObservableCollection<Festiu> DiesLliure { get; } = new();
-    // DatePicker.SelectedDate és DateTimeOffset?; cal aquest tipus per evitar
-    // un error de conversió que feia caure la pestanya Configuració.
-    [ObservableProperty] private DateTimeOffset? _novaDataLliure = DateTimeOffset.Now;
+    // Data en text 'dd/MM/yyyy'. Fem servir un TextBox en lloc del DatePicker
+    // perquè el DatePicker d'Avalonia 11.2 pot fer caure l'aplicació en
+    // renderitzar-se (problema conegut del control) en alguns equips Windows.
+    [ObservableProperty] private string _novaDataLliure = DateTime.Today.ToString("dd/MM/yyyy");
     [ObservableProperty] private string _descripcioLliure = string.Empty;
     [ObservableProperty] private string _missatgeLliure = string.Empty;
 
@@ -683,12 +684,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void AfegeixDiaLliure()
     {
-        if (NovaDataLliure == null)
+        if (!DateTime.TryParseExact(NovaDataLliure?.Trim(), "dd/MM/yyyy",
+                Ca, System.Globalization.DateTimeStyles.None, out var data))
         {
-            MissatgeLliure = "Selecciona una data.";
+            MissatgeLliure = "Data no vàlida. Fes servir el format dd/mm/aaaa.";
             return;
         }
-        _calendari.AfegeixDiaLliure(NovaDataLliure.Value.Date, DescripcioLliure);
+        _calendari.AfegeixDiaLliure(data.Date, DescripcioLliure);
         DescripcioLliure = string.Empty;
         RefrescaDiesLliure();
         RefrescaGraella();

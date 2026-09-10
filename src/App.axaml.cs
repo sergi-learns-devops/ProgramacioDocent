@@ -22,6 +22,15 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // Captura les excepcions no controlades del fil d'interfície (per exemple,
+        // en canviar de pestanya o renderitzar un control). Sense això, un error
+        // de render tanca l'aplicació sense deixar rastre al log.
+        Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            LogService.Error("Dispatcher.UIThread.UnhandledException", e.Exception);
+            e.Handled = true; // evita que l'aplicació es tanqui
+        };
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             try
