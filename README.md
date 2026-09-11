@@ -314,6 +314,10 @@ inclou **prioritat** (Alta/Mitjana/Baixa), **esforç** aproximat i, quan escau,
 - **Importació/exportació de la configuració d'horari** (JSON) i **importació de
   calendari `.ics`** — *Prioritat Mitjana · Esforç Baix-Mitjà*. Per compartir
   plantilles entre professors i carregar festius d'altres cursos.
+- **Compartició d'horari i notes entre professors** — *Prioritat Mitjana · Esforç
+  Mitjà · Risc Mitjà (RGPD)*. Perquè els tutors del mateix curs puguin veure o
+  compartir el seu horari i les seves notes. Vegeu la proposta detallada a la
+  secció **8.8**.
 
 ### 8.3. Informes
 
@@ -441,3 +445,79 @@ facilita el canvi de font de dades.
 > implica requisits d'infraestructura, manteniment i seguretat més exigents. És
 > recomanable només si la necessitat de compartir dades entre diversos usuaris ho
 > justifica.
+
+### 8.8. Compartició d'horari i notes entre professors (P2P local)
+
+Proposta perquè els **tutors del mateix curs** puguin veure o compartir el seu
+horari i les seves notes, **sense** passar a la modalitat servidor–client (8.7) i
+**sense trencar** els principis actuals (100 % local, portable, equips capats).
+Consensuada amb els perfils d'arquitectura, seguretat i QA.
+
+> **Idea inicial replantejada.** La proposta de partida era compartir per **xarxa
+> local** amb un **codi de 6 xifres**. És bona en usabilitat, però té dos punts
+> febles que cal corregir:
+> 1. Un codi de 6 xifres (1.000.000 de combinacions ≈ 20 bits) **no és prou fort**
+>    per protegir dades de menors per si sol.
+> 2. La **LAN no és fiable en equips capats**: firewall, AppLocker, antivirus i el
+>    sovint actiu *client isolation* del Wi-Fi de centre poden impedir que dos
+>    equips es vegin, i obrir un port en un `.exe` no signat sol disparar
+>    l'antivirus.
+>
+> **Conclusió:** la base tècnica no ha de ser la xarxa, sinó un **fitxer xifrat**
+> que sempre funciona. El codi curt es manté com a comoditat, mai com a única defensa.
+
+- **Opció recomanada — Fitxer de compartició xifrat** (p. ex. `.pdc`) —
+  *Prioritat Mitjana · Esforç Mitjà · Risc Mitjà (RGPD)*.
+  Paquet (ZIP amb JSON a dins) xifrat amb **AES-GCM**, amb la clau derivada del
+  codi mitjançant **PBKDF2** amb moltes iteracions (calibrat perquè desxifrar
+  trigui ~1 s → forçar el milió de codis costa dies). Tot amb APIs **natives de
+  .NET 8** (sense DLL noves): no obre ports, no cal admin, no depèn de la xarxa.
+  L'intercanvi és manual (USB, carpeta del centre, correu intern).
+- **Opció opcional posterior — Enviament ràpid per LAN** — *Prioritat Baixa · Risc Alt*.
+  Servidor HTTP efímer amb IP + codi introduïts manualment, codi d'un sol ús amb
+  caducitat i límit d'intents. Només com a comoditat secundària i amb avís que
+  "pot no funcionar en aquesta xarxa"; idealment després de **signar l'`.exe`**.
+- **Descartat per ara — Descoberta automàtica d'equips** (mDNS/UDP): poc fiable en
+  xarxes de centre i afegeix superfície d'atac i dependències.
+
+**Model de compartició recomanat:**
+
+- **Direcció**: començar per **només lectura / importació puntual** (l'emissor
+  genera el paquet; el receptor l'importa i el visualitza). La sincronització
+  bidireccional automàtica queda per a molt més endavant.
+- **Separar horari de notes**:
+  - **Horari** (assignatura + grup + dia + hora + aula): risc baix, compartició lliure.
+  - **Notes** (text lliure, possibles dades de menors): risc alt → flux separat,
+    **opt-in explícit**, **xifratge sempre** i avís RGPD.
+- **Aparellament per claus naturals** (assignatura + grup + dia + hora), no per
+  IDs interns, perquè dues bases de dades diferents es puguin entendre. Reaprofita
+  l'export/import JSON de 8.2.
+- **Conflictes**: en importar, mostrar les diferències i deixar que el receptor
+  triï (*afegir com a nova*, *substituir* o *ometre*). Mai esborrar en silenci.
+
+**Mesures RGPD imprescindibles** (dades de menors):
+
+- Xifratge **AES-GCM** sempre, clau derivada amb **PBKDF2** (iteracions altes,
+  salt i nonce únics per paquet). Condició no negociable.
+- **Notes excloses per defecte** (minimització); reforçar l'ús d'inicials/codis.
+- **Avís de responsabilitat** abans de compartir i noms de fitxer neutres.
+- **Cap còpia en clar a %TEMP%** ni cap sortida a Internet.
+- Oferir un **codi més llarg opcional** (8-10 xifres o passphrase) per als casos
+  més sensibles.
+
+**Pla per fases:**
+
+1. **F0 — Habilitador**: export/import de l'horari en JSON per curs (ja a 8.2),
+   sense xifratge (només horari, risc baix). Valida el model de "paquet" i el
+   *matching* per claus naturals.
+2. **F1 — MVP**: fitxer `.pdc` xifrat (AES-GCM + PBKDF2, codi de 6 xifres).
+   Començar compartint **només l'horari**; afegir les **notes com a opt-in xifrat**
+   amb avís RGPD. Import amb previsualització i resolució manual de conflictes.
+3. **F2 — Opcional**: enviament ràpid per LAN (HTTP efímer, IP + codi), amb avís
+   de fiabilitat; preferiblement amb l'`.exe` ja signat.
+4. **F3 — Futur llunyà**: descoberta automàtica i/o sincronització bidireccional
+   amb fusió. Descartat de moment.
+
+> **Recomanació**: tancar **F0 + F1** i **validar-ho amb professorat real** abans
+> d'invertir esforç en el mode LAN (F2). L'opció del fitxer xifrat cobreix el 100 %
+> dels casos i evita els problemes dels equips capats.

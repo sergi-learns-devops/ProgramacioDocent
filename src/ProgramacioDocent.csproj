@@ -12,7 +12,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <AssemblyName>ProgramacioDocent</AssemblyName>
     <RootNamespace>ProgramacioDocent</RootNamespace>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
     <Company>Programació Docent</Company>
     <Product>Programació Docent</Product>
 

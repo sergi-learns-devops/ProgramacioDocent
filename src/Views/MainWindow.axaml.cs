@@ -136,9 +136,12 @@ public partial class MainWindow : Window
         for (int c = 0; c < 5; c++)
             host.ColumnDefinitions.Add(new ColumnDefinition(1, GridUnitType.Star));
 
-        // Files de 30 min.
+        // Files de 30 min. N'afegim una d'extra al final només per allotjar
+        // l'etiqueta i la línia de l'hora final (p. ex. 19:00), sense cel·les
+        // clicables ni fons en aquesta fila addicional.
         for (int r = 0; r < files; r++)
             host.RowDefinitions.Add(new RowDefinition(alcada, GridUnitType.Pixel));
+        host.RowDefinitions.Add(new RowDefinition(0, GridUnitType.Auto));
 
         var vorera = Brush("BrushBorder");
         var surface = Brush("BrushSurface");

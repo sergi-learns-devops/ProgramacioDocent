@@ -206,22 +206,17 @@ public partial class MainWindowViewModel : ViewModelBase
         ColumnesDia.Clear();
         EtiquetesHora.Clear();
 
-        // Rang horari: de l'inici més matiner al final més tardà de les classes.
-        // Si no hi ha classes, mostrem un rang per defecte (08:00–18:00) perquè
-        // el professor pugui clicar per crear la primera classe.
-        int minInici, maxFi;
-        if (_classes.Count == 0)
+        // Rang horari: sempre es mostra com a mínim de 08:00 a 19:00 (horari
+        // escolar complet), encara que no hi hagi classes. Si alguna classe cau
+        // fora d'aquest rang, s'amplia per incloure-la.
+        const int iniciDia = 8 * 60;   // 08:00
+        const int finDia = 19 * 60;    // 19:00
+        int minInici = iniciDia;
+        int maxFi = finDia;
+        if (_classes.Count > 0)
         {
-            minInici = 8 * 60;
-            maxFi = 18 * 60;
-        }
-        else
-        {
-            minInici = _classes.Min(c => c.HoraInici.Hour * 60 + c.HoraInici.Minute);
-            maxFi = _classes.Max(c => c.HoraFi.Hour * 60 + c.HoraFi.Minute);
-            // Marge perquè sempre hi hagi almenys una fila buida a sota per clicar.
-            minInici = Math.Min(minInici, 8 * 60);
-            maxFi = Math.Max(maxFi, minInici + 60);
+            minInici = Math.Min(iniciDia, _classes.Min(c => c.HoraInici.Hour * 60 + c.HoraInici.Minute));
+            maxFi = Math.Max(finDia, _classes.Max(c => c.HoraFi.Hour * 60 + c.HoraFi.Minute));
         }
 
         // Arrodonim l'inici cap avall a la mitja hora i el final cap amunt.
@@ -229,8 +224,8 @@ public partial class MainWindowViewModel : ViewModelBase
         int finalArrod = ((maxFi + MinutsPerFila - 1) / MinutsPerFila) * MinutsPerFila;
         NombreFiles = Math.Max(1, (finalArrod - _minutBase) / MinutsPerFila);
 
-        // Eix d'hores: una etiqueta a cada hora en punt.
-        for (int m = _minutBase; m < finalArrod; m += MinutsPerFila)
+        // Eix d'hores: una etiqueta a cada hora en punt, inclosa l'hora final.
+        for (int m = _minutBase; m <= finalArrod; m += MinutsPerFila)
         {
             if (m % 60 == 0)
             {
@@ -1007,7 +1002,7 @@ public class DiaCapceleraVm : ViewModelBase
     public bool EsFestiu => !string.IsNullOrEmpty(Festiu);
     // Text de la capçalera: nom + data; si és festiu, ho indica.
     public string Titol => EsFestiu ? $"{Nom} {DataText}" : $"{Nom} {DataText}";
-    public string SubTitol => EsFestiu ? Festiu! : (EsAvui ? "Avui" : "");
+    public string SubTitol => EsFestiu ? Festiu! : (EsAvui ? "Setmana actual" : "");
 }
 
 // Model editable d'assignatura per a l'assistent.
