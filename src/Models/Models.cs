@@ -23,6 +23,12 @@ public class Configuracio
     // Amplada (px) del panell de notes quan està a la dreta, ajustable amb el divisor.
     public int AmpladaPanellDret { get; set; } = 320;
 
+    // Si és cert, els blocs de l'horari mostren un fragment curt de la nota de la setmana.
+    public bool MostraPreviewNotes { get; set; } = false;
+
+    // Si és cert, el grup i l'aula es mostren amb prefix: 'G: 1r A' i 'A: 12'.
+    public bool MostraPrefixGrupAula { get; set; } = false;
+
     // Perfil del professor (informació bàsica, opcional).
     public string ProfNom { get; set; } = string.Empty;
     public string ProfCognoms { get; set; } = string.Empty;

@@ -247,6 +247,23 @@ public partial class MainWindow : Window
                 });
             }
 
+            // Previsualització opcional de la nota: fragment curt d'UNA línia,
+            // retallat amb punts suspensius perquè el bloc NO s'expandeixi ni es
+            // vegi text tallat de la segona línia.
+            if (bloc.TeFragment)
+            {
+                contingut.Children.Add(new TextBlock
+                {
+                    Text = bloc.FragmentNota,
+                    FontSize = 11,
+                    FontStyle = FontStyle.Italic,
+                    Foreground = bloc.TextDetallBrush,
+                    TextWrapping = TextWrapping.NoWrap,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxLines = 1
+                });
+            }
+
             var targeta = new Border
             {
                 Background = bloc.FonsBrush,
@@ -254,6 +271,7 @@ public partial class MainWindow : Window
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(6, 4),
+                ClipToBounds = true,
                 Child = contingut
             };
 

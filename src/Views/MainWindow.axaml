@@ -253,6 +253,16 @@
                                                  IsChecked="{Binding ModeNotaDret}"
                                                  Foreground="{DynamicResource BrushTextPrimary}"/>
                                 </StackPanel>
+                                <CheckBox Content="Mostra una previsualització de la nota a cada classe de l'horari"
+                                          IsChecked="{Binding MostraPreviewNotes}"
+                                          Foreground="{DynamicResource BrushTextPrimary}" Margin="0,4,0,0"/>
+                                <TextBlock FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap"
+                                           Text="Es mostra només un fragment curt de la nota; el bloc no s'amplia."/>
+                                <CheckBox Content="Mostra el grup i l'aula amb prefix (G: i A:)"
+                                          IsChecked="{Binding MostraPrefixGrupAula}"
+                                          Foreground="{DynamicResource BrushTextPrimary}" Margin="0,8,0,0"/>
+                                <TextBlock FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap"
+                                           Text="Als blocs de l'horari, el grup i l'aula es mostren com a 'G: 1r A · A: 12' en lloc de '1r A · Aula 12'."/>
                             </StackPanel>
 
                             <Separator/>

@@ -18,6 +18,15 @@ public class BlocCalendariVm : ViewModelBase
 
     public bool TeNota { get; set; }
 
+    // Fragment curt de la nota per a la previsualització al bloc (opcional).
+    // El fixa el ViewModel només si la preferència de preview està activa.
+    public string FragmentNota { get; set; } = string.Empty;
+    public bool TeFragment => !string.IsNullOrWhiteSpace(FragmentNota);
+
+    // Si és cert, el grup i l'aula es mostren amb prefix 'G:' i 'A:'.
+    // El fixa el ViewModel segons la preferència.
+    public bool UsaPrefixGrupAula { get; set; }
+
     public BlocCalendariVm(ClasseHorari classe, int fila, int filesSpan, int columna)
     {
         Classe = classe;
@@ -33,8 +42,10 @@ public class BlocCalendariVm : ViewModelBase
         get
         {
             var parts = new System.Collections.Generic.List<string>();
-            if (!string.IsNullOrWhiteSpace(Classe.Grup)) parts.Add(Classe.Grup);
-            if (!string.IsNullOrWhiteSpace(Classe.Aula)) parts.Add("Aula " + Classe.Aula);
+            if (!string.IsNullOrWhiteSpace(Classe.Grup))
+                parts.Add(UsaPrefixGrupAula ? "G: " + Classe.Grup : Classe.Grup);
+            if (!string.IsNullOrWhiteSpace(Classe.Aula))
+                parts.Add(UsaPrefixGrupAula ? "A: " + Classe.Aula : "Aula " + Classe.Aula);
             return string.Join(" · ", parts);
         }
     }

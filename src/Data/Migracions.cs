@@ -139,6 +139,19 @@ ALTER TABLE Configuracio ADD COLUMN PosicioEditorNotes TEXT NOT NULL DEFAULT 'Mo
 -- Default 320 (el valor fix anterior). ADD COLUMN és additiu i segur.
 ALTER TABLE Configuracio ADD COLUMN AmpladaPanellDret INTEGER NOT NULL DEFAULT 320;
 "),
+
+        (6, "Previsualització de notes als blocs de l'horari", @"
+-- Si val 1, cada bloc de classe de l'horari mostra un fragment curt de la nota
+-- de la setmana (previsualització). Default 0 (desactivat) per no canviar el
+-- comportament actual. ADD COLUMN és additiu i segur.
+ALTER TABLE Configuracio ADD COLUMN MostraPreviewNotes INTEGER NOT NULL DEFAULT 0;
+"),
+
+        (7, "Prefix G:/A: al grup i aula dels blocs de l'horari", @"
+-- Si val 1, els blocs de l'horari mostren el grup i l'aula amb prefix ('G: 1r A',
+-- 'A: 12'). Default 0 (comportament actual: 'Grup · Aula 12'). Additiu i segur.
+ALTER TABLE Configuracio ADD COLUMN MostraPrefixGrupAula INTEGER NOT NULL DEFAULT 0;
+"),
     };
 
     // Aplica totes les migracions pendents. Retorna la versió final assolida.

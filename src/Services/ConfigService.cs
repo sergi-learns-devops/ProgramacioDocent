@@ -19,7 +19,7 @@ public class ConfigService
 SELECT Id, CursEscolar, DataIniciCurs, DataFiCurs, FormatInformePreferit,
        AssistentCompletat, VersioHorariActivaId,
        Tema, ProfNom, ProfCognoms, ProfCentre, ProfDepartament, ProfEmail,
-       PosicioEditorNotes, AmpladaPanellDret
+       PosicioEditorNotes, AmpladaPanellDret, MostraPreviewNotes, MostraPrefixGrupAula
 FROM Configuracio LIMIT 1;";
         using var r = cmd.ExecuteReader();
         if (!r.Read())
@@ -41,7 +41,9 @@ FROM Configuracio LIMIT 1;";
             ProfDepartament = r.GetString(11),
             ProfEmail = r.GetString(12),
             PosicioEditorNotes = NormalitzaPosicio(r.IsDBNull(13) ? null : r.GetString(13)),
-            AmpladaPanellDret = ClampAmplada(r.IsDBNull(14) ? 320 : r.GetInt32(14))
+            AmpladaPanellDret = ClampAmplada(r.IsDBNull(14) ? 320 : r.GetInt32(14)),
+            MostraPreviewNotes = !r.IsDBNull(15) && r.GetInt32(15) == 1,
+            MostraPrefixGrupAula = !r.IsDBNull(16) && r.GetInt32(16) == 1
         };
     }
 
@@ -75,7 +77,9 @@ UPDATE Configuracio SET
     ProfDepartament = $pdept,
     ProfEmail = $pemail,
     PosicioEditorNotes = $posicio,
-    AmpladaPanellDret = $amplada
+    AmpladaPanellDret = $amplada,
+    MostraPreviewNotes = $preview,
+    MostraPrefixGrupAula = $prefix
 WHERE Id = $id;";
         cmd.Parameters.AddWithValue("$curs", c.CursEscolar);
         cmd.Parameters.AddWithValue("$ini", c.DataIniciCurs.ToString("yyyy-MM-dd"));
@@ -91,6 +95,8 @@ WHERE Id = $id;";
         cmd.Parameters.AddWithValue("$pemail", c.ProfEmail ?? string.Empty);
         cmd.Parameters.AddWithValue("$posicio", NormalitzaPosicio(c.PosicioEditorNotes));
         cmd.Parameters.AddWithValue("$amplada", ClampAmplada(c.AmpladaPanellDret));
+        cmd.Parameters.AddWithValue("$preview", c.MostraPreviewNotes ? 1 : 0);
+        cmd.Parameters.AddWithValue("$prefix", c.MostraPrefixGrupAula ? 1 : 0);
         cmd.Parameters.AddWithValue("$id", c.Id);
         cmd.ExecuteNonQuery();
     }

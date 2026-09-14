@@ -90,6 +90,8 @@ public partial class MainWindowViewModel : ViewModelBase
         // Configuració: tema i perfil.
         _temaSeleccionat = _configuracio.Tema;
         _posicioEditorNotes = _configuracio.PosicioEditorNotes;
+        _mostraPreviewNotes = _configuracio.MostraPreviewNotes;
+        _mostraPrefixGrupAula = _configuracio.MostraPrefixGrupAula;
         _profNom = _configuracio.ProfNom;
         _profCognoms = _configuracio.ProfCognoms;
         _profCentre = _configuracio.ProfCentre;
@@ -254,12 +256,27 @@ public partial class MainWindowViewModel : ViewModelBase
             if (fila < 0) fila = 0;
 
             var bloc = new BlocCalendariVm(classe, fila, span, classe.DiaSetmana);
+            bloc.UsaPrefixGrupAula = _configuracio.MostraPrefixGrupAula;
             var nota = _notes.ObteNota(classe.Id, SetmanaActual);
             bloc.TeNota = nota != null && !string.IsNullOrWhiteSpace(nota.Text);
+            // Previsualització opcional: un fragment curt de la nota (una línia).
+            if (bloc.TeNota && _configuracio.MostraPreviewNotes)
+                bloc.FragmentNota = FragmentDeNota(nota!.Text);
             BlocsCalendari.Add(bloc);
         }
 
         CalendariActualitzat?.Invoke();
+    }
+
+    // Retorna un fragment curt d'una nota per a la previsualització al bloc:
+    // col·lapsa els salts de línia i espais, i trunca a una llargada màxima.
+    private static string FragmentDeNota(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        // Substitueix salts de línia i tabuladors per espais i col·lapsa espais.
+        var net = System.Text.RegularExpressions.Regex.Replace(text.Trim(), @"\s+", " ");
+        const int max = 80;
+        return net.Length <= max ? net : net.Substring(0, max).TrimEnd() + "…";
     }
 
     // S'emet quan cal redibuixar la graella de calendari (canvi de setmana, etc.).
@@ -536,6 +553,27 @@ public partial class MainWindowViewModel : ViewModelBase
     // Amplada actual del panell dret (px). La vista la llegeix a l'arrencada i la
     // desa quan l'usuari acaba d'arrossegar el divisor.
     public int AmpladaPanellDret => _configuracio.AmpladaPanellDret;
+
+    // ---- Previsualització de notes als blocs de l'horari ----
+    [ObservableProperty] private bool _mostraPreviewNotes;
+
+    partial void OnMostraPreviewNotesChanged(bool value)
+    {
+        _configuracio.MostraPreviewNotes = value;
+        _config.Desa(_configuracio);
+        // Recalcula els blocs perquè apareguin o desapareguin els fragments.
+        RefrescaGraella();
+    }
+
+    // ---- Prefix G:/A: al grup i aula ----
+    [ObservableProperty] private bool _mostraPrefixGrupAula;
+
+    partial void OnMostraPrefixGrupAulaChanged(bool value)
+    {
+        _configuracio.MostraPrefixGrupAula = value;
+        _config.Desa(_configuracio);
+        RefrescaGraella();
+    }
 
     // Desa la nova amplada del panell dret (cridada per la vista en soltar el divisor).
     public void DesaAmpladaPanell(double px)
